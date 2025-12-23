@@ -1,7 +1,6 @@
 # 共通
 .DS_Store
 Thumbs.db
-.vscode/
 .idea/
 .env
 .env.*
