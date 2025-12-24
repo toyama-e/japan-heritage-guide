@@ -12,9 +12,15 @@ export default defineConfig([
     languageOptions: { globals: globals.browser },
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
+    },
+  },
+
+  tseslint.configs.recommended,
+  pluginReact.configs.flat.recommended,
+
+  {
+    rules: {
       'react/react-in-jsx-scope': 'off',
     },
   },
-  tseslint.configs.recommended,
-  pluginReact.configs.flat.recommended,
 ]);
