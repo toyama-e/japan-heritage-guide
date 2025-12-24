@@ -1,0 +1,11 @@
+[flake8]
+max-line-length =79
+max-doc-length =72
+
+extend-ignore = E203, W503
+exclude =
+    .venv,
+    __pycache__,
+    migrations
+
+# 型ヒント・命名・import・PEP8を厳密にチェック
