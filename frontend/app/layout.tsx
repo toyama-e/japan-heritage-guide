@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import './globals.css';
+import './globals.css';
 // import { BottomTabBar } from '../components/navigation/BottomTabBar';
 
 export const metadata = {
