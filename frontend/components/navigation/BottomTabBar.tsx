@@ -11,12 +11,12 @@ const items = [
   { href: '/mypage', label: 'マイページ' },
 ];
 
-export default function BottomTabBar() {
+export const BottomTabBar = () => {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 border-t bg-white">
-      <ul className="flex justify-between px-2 py-2 text-xs">
+    <nav className="fixed bottom-0 left-0 right-0 border-t bg-white h-16">
+      <ul className="flex h-full justify-between px-2 text-xs items-center">
         {items.map((item) => (
           <li key={item.href} className="flex-1 text-center">
             <Link
@@ -30,4 +30,4 @@ export default function BottomTabBar() {
       </ul>
     </nav>
   );
-}
+};
