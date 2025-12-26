@@ -1,0 +1,35 @@
+@import 'tailwindcss';
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #fafafa;
+  color: #111;
+}
+
+main {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.card {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fff;
+}
+
+.card-placeholder {
+  margin-top: 12px;
+  height: 64px;
+  background: #eee;
+  border-radius: 8px;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+}
