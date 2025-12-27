@@ -43,7 +43,7 @@ services:
       FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   db:
     image: postgres:16
@@ -81,4 +81,3 @@ networks:
 
 volumes:
   db_data:
-
