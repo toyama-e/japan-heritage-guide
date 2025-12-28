@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getIdToken } from '../../lib/auth/getidtoken';
 
 interface AuthFormProps {
   onSubmit: (email: string, password: string) => Promise<unknown>;
@@ -19,9 +20,11 @@ export default function AuthForm({ onSubmit, submitText }: AuthFormProps) {
 
     try {
       await onSubmit(email, password);
+      const token = await getIdToken();
 
       if (process.env.NODE_ENV !== 'production') {
         console.log('🔥 success:', email);
+        console.log('🔥 Idtoken ', token);
       }
 
       setMessage('登録しました！');
