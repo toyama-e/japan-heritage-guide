@@ -17,6 +17,7 @@ def run():
                     latitude=float(row["latitude"]) if row["latitude"] else None,
                     longitude=float(row["longitude"]) if row["longitude"] else None,
                     summary=row["summary"],
+                    badge_image_url=row["badge_image_url"],
                 )
                 db.add(heritage)
             db.commit()
