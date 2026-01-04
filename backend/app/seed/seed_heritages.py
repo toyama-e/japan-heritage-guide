@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.models.heritage import WorldHeritage
 
-BASE_DIR = Path(__file__).resolve().parent
-CSV_PATH = BASE_DIR / "data" / "world_heritages.csv"
+APP_DIR = Path(__file__).resolve().parents[1]  # /app/app
+CSV_PATH = APP_DIR / "data" / "world_heritages.csv"
 
 def run():
     db: Session = SessionLocal()
