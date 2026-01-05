@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.router import router
 from fastapi.staticfiles import StaticFiles
 from app.core.firebase_admin import init_firebase_admin
@@ -6,6 +7,17 @@ from app.api.v1.firebase_router import router as firebase_router
 
 app = FastAPI()
 
+# ===== CORS設定（ここから） =====
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # Next.js
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# ===== CORS設定（ここまで） =====
 
 @app.on_event("startup")
 def startup_event():
