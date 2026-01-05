@@ -17,7 +17,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function Heritages() {
   const { data: list, error } = useSWR<HeritageData[]>(
-    'http://localhost:8000/api/v1/heritages',
+    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/heritages`,
     fetcher,
   );
 
