@@ -1,12 +1,16 @@
 import csv
+from pathlib import Path
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.models.heritage import WorldHeritage
 
+BASE_DIR = Path(__file__).resolve().parent
+CSV_PATH = BASE_DIR / "data" / "world_heritages.csv"
+
 def run():
     db: Session = SessionLocal()
     try:
-        with open("data/world_heritages.csv", newline="", encoding="utf-8-sig") as f:
+        with open(CSV_PATH, newline="", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 heritage = WorldHeritage(
@@ -17,6 +21,7 @@ def run():
                     latitude=float(row["latitude"]) if row["latitude"] else None,
                     longitude=float(row["longitude"]) if row["longitude"] else None,
                     summary=row["summary"],
+                    badge_image_url=row["badge_image_url"],
                 )
                 db.add(heritage)
             db.commit()

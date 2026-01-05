@@ -12,3 +12,6 @@ class WorldHeritage(Base):
     latitude = Column(Float)
     longitude = Column(Float)
     summary = Column(String)
+
+# 獲得バッジ画像URL（仮：/static/badges/1.png）
+    badge_image_url = Column(String)
