@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.router import router
+from fastapi.staticfiles import StaticFiles
 from app.core.firebase_admin import init_firebase_admin
 from app.api.v1.firebase_router import router as firebase_router
 
@@ -29,5 +30,11 @@ def read_root():
     return {"hello": "world"}
 
 
+@app.get("/badges")
+def read_badges():
+    pass
+
+
 app.include_router(router, prefix="/api/v1")
 app.include_router(firebase_router, prefix="/api/v1")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
