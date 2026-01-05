@@ -24,7 +24,7 @@ export default function AuthForm({ onSubmit, submitText }: AuthFormProps) {
 
       if (process.env.NODE_ENV !== 'production') {
         console.log('🔥 success:', email);
-        console.log('🔥 Idtoken ', token);
+        console.log('🔥 Idtoken:', token);
       }
 
       setMessage('登録しました！');

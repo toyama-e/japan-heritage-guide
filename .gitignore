@@ -32,6 +32,7 @@ venv/
 .ruff_cache/
 *.sqlite3
 *.db
+firebase-service-account.json
 
 # Docker / DB
 *.log
