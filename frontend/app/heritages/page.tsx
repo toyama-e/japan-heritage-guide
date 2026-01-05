@@ -1,73 +1,61 @@
-import Link from 'next/link';
-import useSWR, { mutate } from 'swr';
+'use client';
+// import Link from 'next/link';
+import useSWR from 'swr';
 
 type HeritageData = {
   id: number;
   name: string;
   type: string;
-  year: string;
+  address: string;
+  year: number;
   latitude: number;
-  longitude: string;
+  longitude: number;
   summary: string;
 };
 
-// fetcher関数（SWRに渡す「データ取得専用の関数」）を用意
-// fetch(url) ：ブラウザ標準のAPIで、指定したURLからデータを取得
-// .then(res => res.json()) ：取得したレスポンスを JSON形式に変換
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export default function heritages() {
-  // useSWR（データ取得用のReactフック）でデータ取得
+export default function Heritages() {
   const { data: list, error } = useSWR<HeritageData[]>(
-    'http://localhost:4000/money',
+    'http://localhost:8000/api/v1/heritages',
     fetcher,
   );
 
-  // エラーがあった場合表示
-  if (error) return <div>データ取得に失敗しました</div>;
-
-  // データが読み込み中または、存在しない時表示
-  if (!list) return <div>読み込み中...</div>;
+  if (error) return <div className="p-4">データ取得に失敗しました</div>;
+  if (!list) return <div className="p-4">読み込み中...</div>;
 
   return (
-    <div className="list">
-      <table className="w-full border-2 border-gray-300 border-collapse">
+    <div className="overflow-hidden rounded-lg border border-gray-300 bg-white">
+      <table className="w-full border-collapse text-sm">
         <thead>
-          <tr className="text-left bg-emerald-200">
-            <th className="p-2">日付</th>
-            <th className="p-2">収入/支出</th>
-            <th className="p-2">カテゴリー</th>
-            <th className="p-2">金額</th>
-            <th className="p-2">memo</th>
-            <th></th>
-            <th></th>
+          <tr className="bg-[#FCE4CF] text-gray-700">
+            <th className="px-2 py-3 font-normal text-left border border-gray-200">
+              No.
+            </th>
+            <th className="px-2 py-3 font-normal text-left border border-gray-200">
+              世界遺産名
+            </th>
+            <th className="px-2 py-3 font-normal text-left border border-gray-200">
+              所在地
+            </th>
+            <th className="px-2 py-3 font-normal text-left border border-gray-200">
+              区分
+            </th>
           </tr>
         </thead>
+
         <tbody>
-          {/* 取得したデータ配列から一つずつデータを取り出す */}
-          {list.map((item: MoneyData) => (
-            <tr key={item.id} className="border-1 border-gray-300">
-              <td className="p-2">
-                {new Date(item.date).toLocaleDateString('ja-JP', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+          {list.map((item) => (
+            <tr key={item.id} className="h-12">
+              <td className="px-2 text-center border border-gray-200">
+                {item.id}
               </td>
-              <td>{item.type}</td>
-              <td>{item.category}</td>
-              <td className="font-black">
-                {item.type === '支出'
-                  ? `-${item.money.toLocaleString()}`
-                  : item.money.toLocaleString()}
-                円
+              <td className="px-2 border border-gray-200">{item.name}</td>
+              <td className="px-2 border border-gray-200 whitespace-nowrap">
+                {item.address}
               </td>
-              <td>{item.memo}</td>
-              <td className="text-sky-700 font-black">
-                <Link href={`/detail/${item.id}`}>詳細へ</Link>
-              </td>
-              <td className="text-sky-700 font-black">
-                <button onClick={() => handleDelete(item.id)}>削除</button>
+              <td className="px-2 text-center border border-gray-200 whitespace-nowrap">
+                {item.type}
               </td>
             </tr>
           ))}
