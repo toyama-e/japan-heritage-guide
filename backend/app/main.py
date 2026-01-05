@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.router import router
+from app.core.firebase_admin import init_firebase_admin
+from app.api.v1.firebase_router import router as firebase_router
 
 app = FastAPI()
 
@@ -16,8 +18,16 @@ app.add_middleware(
 )
 # ===== CORS設定（ここまで） =====
 
+@app.on_event("startup")
+def startup_event():
+    init_firebase_admin()
+    print ("🔥Firebase Admin初期化OK")
+
+
 @app.get("/")
 def read_root():
     return {"hello": "world"}
 
+
 app.include_router(router, prefix="/api/v1")
+app.include_router(firebase_router, prefix="/api/v1")
