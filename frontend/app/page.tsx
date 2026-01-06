@@ -1,36 +1,50 @@
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import Image from 'next/image';
 
 export default function HomePage() {
   return (
-    <div className="mx-auto max-w-sm px-6 pt-10">
-      {/* ヘッダーは作らない前提なので、上部は余白で調整 */}
-      <header className="mb-8 text-center">
-        {/* <p className="text-xs text-gray-500">トップページ</p> */}
-        <h1 className="mt-6 text-4xl font-bold tracking-tight">いさんぽ</h1>
-        <p className="text-lg text-gray-700">Japan</p>
-        <p className="mt-3 text-sm text-gray-600">知る、という贅沢な旅へ。</p>
-      </header>
+    <div className="mx-auto max-w-sm pt-5">
+      <div className="mb-8 text-center">
+        <h1 className="mb-5 text-4xl font-bold tracking-wide">
+          いさんぽ JAPAN{' '}
+        </h1>
+        <p className="text-1xl mb-10 text-gray-600">知る、という贅沢な旅へ。</p>
+        <img
+          src="https://firebasestorage.googleapis.com/v0/b/final-project-f4891.firebasestorage.app/o/world_heritage%2F17.MtFuji.jpeg?alt=media"
+          alt="トップページ画像"
+          className="h-60 w-full rounded-xl object-cover shadow-md"
+        />
+      </div>
 
-      {/* 2つの導線カード（仮） */}
-      <section
-        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}
-      >
-        <Card className="card">
-          <p className="card-title">世界遺産を</p>
-          <p className="card-title">さがす</p>
+      <section className="mb-8 grid grid-cols-2 gap-4">
+        <Card className="bg-[#FBE3CF]">
+          <Image
+            src="/icons/list-icon.png"
+            alt="一覧から探す"
+            width={48}
+            height={48}
+          />
+          <p className="text-sm font-medium">一覧から</p>
+          <p className="text-base font-semibold">さがす</p>
         </Card>
 
-        <Card className="card">
-          <p className="card-title">日記を</p>
-          <p className="card-title">見る</p>
+        <Card className="bg-[#D3D6C6]">
+          <Image
+            src="/icons/map-icon.png"
+            alt="一覧から探す"
+            width={48}
+            height={48}
+          />
+          <p className="text-sm font-medium">マップから</p>
+          <p className="text-base font-semibold">さがす</p>
         </Card>
       </section>
 
       {/* ボタン導線 */}
       <section className="mt-8 space-y-3">
-        <Button>ログインする</Button>
-        <Button>マイページを作る</Button>
+        <Button className="bg-[#E6DAD0]">ログイン</Button>
+        <Button className="bg-white">新規登録</Button>
       </section>
     </div>
   );
