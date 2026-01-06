@@ -7,8 +7,7 @@ type CardProps = {
   className?: string;
 };
 
-const BASE_CARD_CLASS_NAME =
-  'rounded-lg border border-gray-200 bg-white p-4 shadow-sm';
+const BASE_CARD_CLASS_NAME = 'rounded-lg border border-gray-200 p-4 shadow-sm';
 
 export const Card = ({ children, className }: CardProps) => {
   return (
