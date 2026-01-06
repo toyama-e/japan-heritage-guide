@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import './globals.css';
+import { notoSerifJP } from './fonts';
 import { BottomTabBar } from '../components/navigation/BottomTabBar';
 
 export const metadata = {
@@ -10,7 +11,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ja">
-      <body>
+      <body className={notoSerifJP.className}>
         <main className="min-h-screen pb-20">{children}</main>
         <BottomTabBar />
       </body>
