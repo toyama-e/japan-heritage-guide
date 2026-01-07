@@ -37,3 +37,6 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 @app.get("/")
 def read_root():
     return {"hello": "world"}
+
+
+#app.include_router(router, prefix="/api/v1")
