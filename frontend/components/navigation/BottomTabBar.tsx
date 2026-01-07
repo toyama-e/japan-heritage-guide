@@ -15,7 +15,7 @@ export const BottomTabBar = () => {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 border-t bg-white h-16">
+    <nav className="fixed bottom-0 left-0 right-0 border-t bg-white h-16 w-105 mx-auto">
       <ul className="flex h-full justify-between px-2 text-xs items-center">
         {items.map((item) => (
           <li key={item.href} className="flex-1 text-center">

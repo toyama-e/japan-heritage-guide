@@ -18,26 +18,33 @@ export default function HomePage() {
       </div>
 
       <section className="mb-8 grid grid-cols-2 gap-4">
-        <Card className="bg-[#FBE3CF]">
+        <Card className="bg-[#FBE3CF] text-center">
           <Image
+            className="mx-auto mb-4"
             src="/icons/list-icon.png"
             alt="一覧から探す"
             width={48}
             height={48}
           />
-          <p className="text-sm font-medium">一覧から</p>
-          <p className="text-base font-semibold">さがす</p>
+          <p>
+            <strong className="font-semibold text-xl">一覧 </strong>
+            から
+          </p>
+          <p>さがす</p>
         </Card>
 
-        <Card className="bg-[#D3D6C6]">
+        <Card className="bg-[#D3D6C6] text-center">
           <Image
+            className="mx-auto mb-3 mt-1"
             src="/icons/map-icon.png"
             alt="一覧から探す"
             width={48}
             height={48}
           />
-          <p className="text-sm font-medium">マップから</p>
-          <p className="text-base font-semibold">さがす</p>
+          <p className="text-sm">
+            <strong className="ont-semibold text-xl">マップ</strong>から
+          </p>
+          <p>さがす</p>
         </Card>
       </section>
 
