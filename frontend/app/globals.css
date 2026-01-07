@@ -9,11 +9,10 @@ body {
 }
 
 main {
-  max-width: 420px;
-  margin: 0 auto;
   padding: 20px;
   padding-bottom: 63px;
-
+  max-width: 420px;
+  margin: 0 auto;
   background-color: #FAFAF7;
   color: #2B2B2B;
 }
