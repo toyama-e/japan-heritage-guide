@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const items = [
-  { href: '/', label: 'ホーム' },
-  { href: '/search', label: 'さがす' },
+  { href: '/', label: '一覧' },
+  { href: '/map', label: 'マップ' },
   { href: '/diary', label: '日記' },
-  { href: '/record', label: 'レコード' },
+  { href: 'get-badges', label: '獲得バッジ' },
   { href: '/mypage', label: 'マイページ' },
 ];
 
