@@ -25,10 +25,16 @@ export default function NewRecordPage() {
   // select風プルダウン用
   const [isOpen, setIsOpen] = useState(false);
 
+  // ✅「選択状態」は id だけ持つ（name は後で計算して出す）
   const [selectedHeritageId, setSelectedHeritageId] = useState<number | null>(
     null,
   );
-  const [selectedHeritageName, setSelectedHeritageName] = useState('');
+
+  // ✅ id から表示名を計算して作る（stateにしない）
+  const selectedHeritageName = useMemo(() => {
+    if (selectedHeritageId === null) return '';
+    return heritages.find((h) => h.id === selectedHeritageId)?.name ?? '';
+  }, [heritages, selectedHeritageId]);
 
   const [visitedFrom, setVisitedFrom] = useState('');
   const [visitedTo, setVisitedTo] = useState('');
@@ -52,14 +58,19 @@ export default function NewRecordPage() {
         <div className="relative">
           <p className="text-sm font-medium">世界遺産</p>
 
-          {/* クリックで開く（入力はさせない） */}
-          <div className="mt-2" onClick={() => setIsOpen((v) => !v)}>
+          {/* ✅ クリックできる要素は button に寄せる（読みやすい） */}
+          <button
+            type="button"
+            className="mt-2 w-full text-left"
+            onClick={() => setIsOpen((v) => !v)}
+          >
+            {/* Input自体は「表示専用」なので onChange は空でOK */}
             <Input
               value={selectedHeritageName}
               onChange={() => {}}
               placeholder="世界遺産を選択"
             />
-          </div>
+          </button>
 
           {/* プルダウン */}
           {isOpen && (
@@ -74,8 +85,7 @@ export default function NewRecordPage() {
                       : 'block w-full px-3 py-2 text-left text-sm hover:bg-gray-100'
                   }
                   onClick={() => {
-                    setSelectedHeritageId(h.id);
-                    setSelectedHeritageName(h.name);
+                    setSelectedHeritageId(h.id); // ✅ id だけ更新すればOK
                     setIsOpen(false);
                   }}
                 >
