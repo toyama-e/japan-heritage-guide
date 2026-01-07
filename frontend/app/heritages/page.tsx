@@ -1,5 +1,5 @@
 'use client';
-// import Link from 'next/link';
+import Link from 'next/link';
 import useSWR from 'swr';
 
 type HeritageData = {
@@ -24,6 +24,8 @@ export default function Heritages() {
   if (error) return <div className="p-4">データ取得に失敗しました</div>;
   if (!list) return <div className="p-4">読み込み中...</div>;
 
+  const sortedList = [...list].sort((a, b) => a.id - b.id);
+
   return (
     <div className="overflow-hidden rounded-lg border border-gray-300 bg-white">
       <table className="w-full border-collapse text-sm">
@@ -45,12 +47,14 @@ export default function Heritages() {
         </thead>
 
         <tbody>
-          {list.map((item) => (
+          {sortedList.map((item) => (
             <tr key={item.id} className="h-12">
               <td className="px-2 text-center border border-gray-200">
                 {item.id}
               </td>
-              <td className="px-2 border border-gray-200">{item.name}</td>
+              <td className="px-2 border border-gray-200">
+                <Link href={`/heritages/${item.id}`}> {item.name}</Link>
+              </td>
               <td className="px-2 border border-gray-200 whitespace-nowrap">
                 {item.address}
               </td>
