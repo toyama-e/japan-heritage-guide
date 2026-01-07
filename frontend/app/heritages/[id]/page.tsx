@@ -10,6 +10,14 @@ type HeritageData = {
   address: string;
   year: number;
   summary: string;
+  spot1_title: string;
+  spot1_detail: string;
+  spot2_title: string;
+  spot2_detail: string;
+  spot3_title: string;
+  spot3_detail: string;
+  sites: string;
+  image_url: string;
 };
 
 const fetcher = async (url: string) => {
@@ -53,12 +61,12 @@ export default function DetailHeritages() {
     <div className="max-w-md mx-auto px-4 py-6 space-y-6">
       {/* ヘッダー */}
       <div className="space-y-3">
-        <h2 className="text-xl font-bold text-gray-900">{data.name}</h2>
+        <h2 className="text-3xl font-bold text-gray-900">{data.name}</h2>
 
         <p className="text-sm text-gray-500">（区分：{data.type}）</p>
 
         <img
-          src="https://firebasestorage.googleapis.com/v0/b/final-project-f4891.firebasestorage.app/o/world_heritage%2F1.Horyuji.jpg?alt=media"
+          src={data.image_url}
           alt="世界遺産画像"
           className="w-full h-auto rounded-lg object-cover"
         />
@@ -79,12 +87,10 @@ export default function DetailHeritages() {
                   1
                 </span>
                 <h4 className="font-semibold text-gray-900">
-                  五重塔（ごじゅうのとう）の木組み構造
+                  {data.spot1_title}
                 </h4>
               </div>
-              <p className="text-sm text-gray-600 pl-10">
-                釘を使わずに木を組み合わせた、高度な大工技術を見ることができます。
-              </p>
+              <p className="text-sm text-gray-600 pl-10">{data.spot1_detail}</p>
             </li>
 
             <li className="space-y-1">
@@ -93,12 +99,10 @@ export default function DetailHeritages() {
                   2
                 </span>
                 <h4 className="font-semibold text-gray-900">
-                  金堂（こんどう）の仏像配置
+                  {data.spot2_title}
                 </h4>
               </div>
-              <p className="text-sm text-gray-600 pl-10">
-                仏像の並び方から、当時の仏教の考え方が伝わってきます。
-              </p>
+              <p className="text-sm text-gray-600 pl-10">{data.spot2_detail}</p>
             </li>
 
             <li className="space-y-1">
@@ -107,12 +111,10 @@ export default function DetailHeritages() {
                   3
                 </span>
                 <h4 className="font-semibold text-gray-900">
-                  回廊（かいろう）の柱と屋根
+                  {data.spot3_title}
                 </h4>
               </div>
-              <p className="text-sm text-gray-600 pl-10">
-                長い年月を経ても残る造りから、建物の丈夫さがわかります。
-              </p>
+              <p className="text-sm text-gray-600 pl-10">{data.spot3_detail}</p>
             </li>
           </ol>
         </section>
@@ -123,7 +125,7 @@ export default function DetailHeritages() {
             世界遺産になるまで
           </h3>
           <p className="text-sm text-gray-700 leading-relaxed">
-            法隆寺は、日本に仏教が広まった初期の姿を今に伝える寺院です。現存する木造建築としては世界でもとても古く、当時の建築技術や仏教文化を知る貴重な資料として評価され、世界遺産に登録されました。
+            {data.summary}
           </p>
         </section>
 
@@ -132,7 +134,7 @@ export default function DetailHeritages() {
           <h3 className="font-semibold border-b border-gray-300 pb-1">
             世界遺産群
           </h3>
-          <p className="text-sm text-gray-700">法隆寺, 法起寺</p>
+          <p className="text-sm text-gray-700">{data.sites}</p>
         </section>
       </div>
     </div>
