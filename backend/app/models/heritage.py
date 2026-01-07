@@ -9,9 +9,15 @@ class WorldHeritage(Base):
     type = Column(String, nullable=False)
     address = Column(String)
     year = Column(Integer)
+    spot1_title = Column(String)
+    spot1_detail = Column(String)
+    spot2_title = Column(String)
+    spot2_detail = Column(String)
+    spot3_title = Column(String)
+    spot3_detail = Column(String)
+    sites = Column(String)
+    summary = Column(String)
     latitude = Column(Float)
     longitude = Column(Float)
-    summary = Column(String)
-
-# 獲得バッジ画像URL（仮：/static/badges/1.png）
+    image_url = Column(String)
     badge_image_url = Column(String)
