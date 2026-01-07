@@ -5,6 +5,8 @@ type InputProps = {
   onChange: (value: string) => void;
   placeholder?: string;
   type?: 'text' | 'date';
+  min?: string;
+  max?: string;
 };
 
 const BASE_INPUT_CLASS_NAME =
