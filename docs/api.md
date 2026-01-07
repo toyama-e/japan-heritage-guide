@@ -1,6 +1,7 @@
 2025/12/22 作成
 2025/12/22 更新
 2025/12/26 更新
+2026/01/03 更新
 
 ### テーブルと API リソースの対応
 
@@ -10,7 +11,7 @@
 | WorldHeritageSites | `/heritages/{id}/sites`       |
 | Recommended        | `/heritages/{id}/recommended` |
 | Photos             | `/heritages/{id}/photos`      |
-| Visit              | `/visits`                     |
+| Visits             | `/visits`                     |
 | Diaries            | `/diaries`                    |
 | DailyPhoto         | `/diaries/{id}/photos`        |
 | Users              | `/users`                      |
@@ -28,7 +29,7 @@
 
 ---
 
-### Visit 訪問
+### Visits 訪問
 
 | Method | Endpoint       | 内容           |
 | ------ | -------------- | -------------- |
