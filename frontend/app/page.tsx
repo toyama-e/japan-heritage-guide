@@ -1,6 +1,7 @@
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function HomePage() {
   return (
@@ -18,40 +19,47 @@ export default function HomePage() {
       </div>
 
       <section className="mb-8 grid grid-cols-2 gap-4">
-        <Card className="bg-[#FBE3CF] text-center">
-          <Image
-            className="mx-auto mb-4"
-            src="/icons/list-icon.png"
-            alt="一覧から探す"
-            width={48}
-            height={48}
-          />
-          <p>
-            <strong className="font-semibold text-xl">一覧 </strong>
-            から
-          </p>
-          <p>さがす</p>
-        </Card>
-
-        <Card className="bg-[#D3D6C6] text-center">
-          <Image
-            className="mx-auto mb-3 mt-1"
-            src="/icons/map-icon.png"
-            alt="一覧から探す"
-            width={48}
-            height={48}
-          />
-          <p className="text-sm">
-            <strong className="ont-semibold text-xl">マップ</strong>から
-          </p>
-          <p>さがす</p>
-        </Card>
+        <Link href="/heritages">
+          <Card className="bg-[#FBE3CF] text-center">
+            <Image
+              className="mx-auto mb-4"
+              src="/icons/list-icon.png"
+              alt="一覧から探す"
+              width={48}
+              height={48}
+            />
+            <p>
+              <strong className="font-semibold text-xl">一覧 </strong>
+              から
+            </p>
+            <p>さがす</p>
+          </Card>
+        </Link>
+        <Link href="/map">
+          <Card className="bg-[#D3D6C6] text-center">
+            <Image
+              className="mx-auto mb-3 mt-1"
+              src="/icons/map-icon.png"
+              alt="一覧から探す"
+              width={48}
+              height={48}
+            />
+            <p className="text-sm">
+              <strong className="ont-semibold text-xl">マップ</strong>から
+            </p>
+            <p>さがす</p>
+          </Card>
+        </Link>
       </section>
 
       {/* ボタン導線 */}
       <section className="mt-8 space-y-3">
-        <Button className="bg-[#E6DAD0]">ログイン</Button>
-        <Button className="bg-white">新規登録</Button>
+        <Link href="/auth/login">
+          <Button className="bg-[#E6DAD0] mb-4">ログイン</Button>
+        </Link>
+        <Link href="/auth/register">
+          <Button className="bg-white">新規登録</Button>
+        </Link>
       </section>
     </div>
   );
