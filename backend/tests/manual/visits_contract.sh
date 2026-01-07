@@ -7,6 +7,11 @@ API_PREFIX="${API_PREFIX:-/api/v1}"
 VISITS_ME_URL="$BASE_URL$API_PREFIX/visits/me"
 VISITS_URL="$BASE_URL$API_PREFIX/visits"
 
+# ✅ dev 仮認証（FastAPI側の get_dev_user_id が読むヘッダー）
+# 例: USER_ID=1 ./scripts/visits_manual_test.sh
+USER_ID="${USER_ID:-1}"
+AUTH_HEADER="X-User-Id: ${USER_ID}"
+
 # すでに訪問済みだと 201 が出ないので、未訪問のIDに変えられるようにしておく
 WORLD_HERITAGE_ID="${WORLD_HERITAGE_ID:-26}"
 VISITED_FROM="${VISITED_FROM:-2026-01-01}"
@@ -17,6 +22,8 @@ PAYLOAD="{\"world_heritage_id\":$WORLD_HERITAGE_ID,\"visited_from\":\"$VISITED_F
 echo "============================="
 echo "Visits Contract Test (manual)"
 echo "BASE_URL=$BASE_URL"
+echo "API_PREFIX=$API_PREFIX"
+echo "USER_ID=$USER_ID"
 echo "world_heritage_id=$WORLD_HERITAGE_ID"
 echo "============================="
 echo
@@ -24,7 +31,9 @@ echo
 # --- 1) GET /visits/me -------------------------------------------------------
 echo "1) GET /api/v1/visits/me 自分の訪問一覧取得"
 
-status=$(curl -s -o /dev/null -w "%{http_code}" "$VISITS_ME_URL")
+status=$(curl -s -o /dev/null -w "%{http_code}" \
+  -H "$AUTH_HEADER" \
+  "$VISITS_ME_URL")
 echo "status=$status"
 
 if [ "$status" != "200" ]; then
@@ -41,6 +50,7 @@ echo "payload=$PAYLOAD"
 status=$(curl -s -o /dev/null -w "%{http_code}" \
   -X POST "$VISITS_URL" \
   -H "Content-Type: application/json" \
+  -H "$AUTH_HEADER" \
   -d "$PAYLOAD")
 
 echo "status=$status"
@@ -55,7 +65,10 @@ echo
 # --- 3) GET /visits/me (after create) ----------------------------------------
 echo "3) GET /api/v1/visits/me（作成後に取得できるか）"
 
-status=$(curl -s -o /dev/null -w "%{http_code}" "$VISITS_ME_URL")
+status=$(curl -s -o /dev/null -w "%{http_code}" \
+  -H "$AUTH_HEADER" \
+  "$VISITS_ME_URL")
+  
 echo "status=$status"
 
 if [ "$status" != "200" ]; then
@@ -72,6 +85,7 @@ echo "payload=$PAYLOAD"
 status=$(curl -s -o /dev/null -w "%{http_code}" \
   -X POST "$VISITS_URL" \
   -H "Content-Type: application/json" \
+  -H "$AUTH_HEADER" \
   -d "$PAYLOAD")
 
 echo "status=$status"
