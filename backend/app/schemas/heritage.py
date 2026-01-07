@@ -20,4 +20,4 @@ class HeritageOut(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     image_url: Optional[str] = None
-    badge_image_url: str
+    badge_image_url: Optional[str] = None
