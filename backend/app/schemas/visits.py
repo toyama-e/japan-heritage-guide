@@ -31,7 +31,7 @@ class VisitOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int = Field(..., description="訪問記録ID")
-    firebase_uid: str = Field(..., description="FirebaseユーザーID")
+    user_id: int = Field(..., description="ユーザーID")
     world_heritage_id: int = Field(..., description="世界遺産ID")
     visited_from: Optional[date] = Field(None, description="訪問開始日（未入力可）")
     visited_to: Optional[date] = Field(None, description="訪問終了日（未入力可）")
