@@ -1,5 +1,5 @@
 # backend/api/v1/visits.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.visits import VisitCreateRequest, VisitOut, VisitsMeResponse
@@ -9,17 +9,28 @@ from sqlalchemy.exc import IntegrityError
 
 router = APIRouter(prefix="/visits", tags=["visits"])
 
+# TODO: Firebase認証導入後は get_current_user に差し替える
+def get_dev_user_id(
+    x_user_id: int | None = Header(default=None, alias="X-User-Id"),
+) -> int:
+    """
+    開発用の仮認証:
+    - リクエストヘッダー `X-User-Id: <int>` を受け取り、ログインユーザーIDとして扱う
+    - ない場合は 401（ログイン必須の挙動を再現）
+    """
+    if x_user_id is None:
+        raise HTTPException(status_code=401, detail="X-User-Id header required (dev auth)")
+    return x_user_id
+
 # 訪問記録新規作成
 @router.post("", response_model=VisitOut, status_code=201)
 def create_visit(
     payload: VisitCreateRequest,
     db: Session = Depends(get_db),
+    user_id: int = Depends(get_dev_user_id),
 ):
-    # firebase_uid（仮）あとで差し替える
-    firebase_uid = "test_uid"
-
     visit = Visit(
-        firebase_uid=firebase_uid,
+        user_id=user_id,
         world_heritage_id=payload.world_heritage_id,
         visited_from=payload.visited_from,
         visited_to=payload.visited_to,
@@ -44,19 +55,17 @@ def create_visit(
 @router.get("/me", response_model=VisitsMeResponse)
 def get_my_visits(
     db: Session = Depends(get_db),
+    user_id: int = Depends(get_dev_user_id),
 ):
-    # firebase_uid（仮）あとで差し替える
-    firebase_uid = "test_uid"
 
     rows = (
         db.query(Visit)
-        .filter(Visit.firebase_uid == firebase_uid)
+        .filter(Visit.user_id == user_id)
         .filter(Visit.deleted_at.is_(None))
         .all()
     )
 
-    visited_ids = [visit.world_heritage_id for visit in rows]
-    visited_ids = sorted(set(visited_ids))
+    visited_ids = sorted({visit.world_heritage_id for visit in rows})
 
     return VisitsMeResponse(
         visited_heritage_ids=visited_ids,

@@ -4,6 +4,7 @@ from alembic import context
 from app.core.database import engine, Base
 from app.models.heritage import WorldHeritage
 from app.models.visit import Visit
+from app.models.user import User
 
 # Alembic Config
 config = context.config
