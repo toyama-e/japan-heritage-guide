@@ -1,14 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1.router import router
+from app.api.v1.router import router as api_v1_router
 from fastapi.staticfiles import StaticFiles
 from app.core.firebase_admin import init_firebase_admin
 from app.api.v1.firebase_router import router as firebase_router
-from app.api.v1.me_router import router as me_router
 
 app = FastAPI()
 
-# ===== CORS設定（ここから） =====
+# ===== CORS設定 =====
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -18,25 +17,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# ===== CORS設定（ここまで） =====
 
+# ===== Firebase Admin 初期化 =====
 @app.on_event("startup")
 def startup_event():
     init_firebase_admin()
     print ("🔥Firebase Admin初期化OK")
 
+# ===== API ルーティング =====
+app.include_router(api_v1_router, prefix="/api/v1")
+app.include_router(firebase_router, prefix="/api/v1")
+
+# ===== 静的ファイル配信 =====
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 
 @app.get("/")
 def read_root():
     return {"hello": "world"}
-
-
-@app.get("/badges")
-def read_badges():
-    pass
-
-
-app.include_router(router, prefix="/api/v1")
-app.include_router(firebase_router, prefix="/api/v1")
-app.include_router(me_router, prefix="/api/v1")
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
