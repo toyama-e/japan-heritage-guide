@@ -343,12 +343,12 @@ export default function NewRecordPage() {
                 disabled={submitting}
                 onClick={async () => {
                   if (isVisitSaved) {
-                    alert('日記作成へ（UI確認）');
+                    alert('日記作成へ');
                     return;
                   }
 
                   if (!hasDraft) {
-                    alert('日記作成へ（UI確認）');
+                    alert('日記作成へ');
                     return;
                   }
 
@@ -373,7 +373,7 @@ export default function NewRecordPage() {
                     setVisitedTo('');
                     setIsVisitSaved(false);
                     setMessage(null);
-                    alert('日記作成へ（UI確認）');
+                    alert('日記作成へ');
                   }
                 }}
               >
