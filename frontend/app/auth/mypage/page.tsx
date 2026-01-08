@@ -10,6 +10,7 @@ type UserData = {
   id: number;
   firebase_uid: string;
   email?: string | null;
+  nickname?: string | null;
 };
 
 const fetcherWithToken = async (url: string) => {
@@ -53,6 +54,7 @@ export default function Home() {
           <p>サインイン中</p>
           <p>UserID: {user.id}</p>
           <p>Email: {user.email}</p>
+          <p>Nickname: {user.nickname ?? '未設定'}</p>
           <LogoutButton />
         </>
       ) : (

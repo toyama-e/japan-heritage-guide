@@ -1,4 +1,3 @@
-# app/schemas/user.py
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
@@ -33,5 +32,7 @@ class UserRead(BaseModel):
     updated_at: Optional[datetime]
     deleted_at: Optional[datetime]
 
-    class Config:
-        orm_mode = True  # SQLAlchemy モデルから直接変換できるようにする
+    # Pydantic v2 用設定
+    model_config = {
+        "from_attributes": True
+    }
