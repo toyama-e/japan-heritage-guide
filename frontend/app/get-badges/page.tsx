@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../../components/ui/Card';
 import { BadgeCard } from '../../components/ui/BadgeCard';
 import { apiFetch } from '../../lib/apiFetch';
+import Link from 'next/link';
+import { Button } from '../../components/ui/Button';
 
 type VisitsMeResponse = {
   visited_heritage_ids: number[];
@@ -119,6 +121,36 @@ export default function GetBadgesPage() {
           </p>
         )}
       </Card>
+
+      {/* 使い方ガイド（Cardの下） */}
+      <div className="mt-4 rounded-lg bg-gray-50 p-4">
+        <p className="text-sm font-semibold text-gray-900">
+          訪問を登録するとバッジが解放されます
+        </p>
+        <p className="mt-1 text-xs text-gray-600">
+          訪問件数が増えるほど称号がアップ！
+        </p>
+
+        <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-gray-700">
+          <div className="flex-1 rounded-full bg-white px-3 py-2 text-center shadow-sm">
+            ① 訪問登録
+          </div>
+          <div className="text-gray-400">→</div>
+          <div className="flex-1 rounded-full bg-white px-3 py-2 text-center shadow-sm">
+            ② バッジ解放
+          </div>
+          <div className="text-gray-400">→</div>
+          <div className="flex-1 rounded-full bg-white px-3 py-2 text-center shadow-sm">
+            ③ 称号UP
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 flex justify-center">
+        <Link href="/new-record" className="w-full max-w-sm">
+          <Button className="w-full">訪問登録へ</Button>
+        </Link>
+      </div>
 
       <section className="mt-8 grid grid-cols-2 gap-4">
         {badgesForView.map((badge) => (
