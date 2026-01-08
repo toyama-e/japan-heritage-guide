@@ -5,11 +5,13 @@ from app.core.database import get_db
 from app.schemas.visits import VisitCreateRequest, VisitOut, VisitsMeResponse
 from app.models.visit import Visit
 from sqlalchemy.exc import IntegrityError
+from app.core.firebase_dependency import get_current_user
+from app.models.user import User
 
 
 router = APIRouter(prefix="/visits", tags=["visits"])
 
-# TODO: Firebase認証導入後は get_current_user に差し替える
+# dev auth は、本番ルートでは使わない
 def get_dev_user_id(
     x_user_id: int | None = Header(default=None, alias="X-User-Id"),
 ) -> int:
@@ -27,10 +29,10 @@ def get_dev_user_id(
 def create_visit(
     payload: VisitCreateRequest,
     db: Session = Depends(get_db),
-    user_id: int = Depends(get_dev_user_id),
+    current_user: User = Depends(get_current_user),
 ):
     visit = Visit(
-        user_id=user_id,
+        user_id=current_user.id,
         world_heritage_id=payload.world_heritage_id,
         visited_from=payload.visited_from,
         visited_to=payload.visited_to,
@@ -55,12 +57,12 @@ def create_visit(
 @router.get("/me", response_model=VisitsMeResponse)
 def get_my_visits(
     db: Session = Depends(get_db),
-    user_id: int = Depends(get_dev_user_id),
+    current_user: User = Depends(get_current_user),
 ):
 
     rows = (
         db.query(Visit)
-        .filter(Visit.user_id == user_id)
+        .filter(Visit.user_id == current_user.id)
         .filter(Visit.deleted_at.is_(None))
         .all()
     )
