@@ -7,25 +7,25 @@ type ButtonProps = {
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
+  className?: string;
 };
 
-const DEFAULT_BUTTON_TYPE: ButtonProps['type'] = 'button';
-
 const BASE_BUTTON_CLASS_NAME =
-  'w-full rounded-md bg-black px-4 py-2 text-white disabled:opacity-50';
+  'w-full rounded-md p-4 disabled:opacity-50 shadow-[5px_5px_5px_-5px_#919191]';
 
 export const Button = ({
   children,
   onClick,
-  type = DEFAULT_BUTTON_TYPE,
+  type = 'button',
   disabled = false,
+  className = '',
 }: ButtonProps) => {
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={BASE_BUTTON_CLASS_NAME}
+      className={`${BASE_BUTTON_CLASS_NAME} ${className}`}
     >
       {children}
     </button>

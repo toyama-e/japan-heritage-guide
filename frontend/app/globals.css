@@ -5,14 +5,15 @@ body {
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #fafafa;
-  color: #111;
+  background-color: #FAFAF7;
+  color: #2B2B2B;
 }
 
 main {
+  padding: 20px;
+  padding-bottom: 140px;
   max-width: 420px;
   margin: 0 auto;
-  padding: 24px;
 }
 
 .card {
