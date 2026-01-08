@@ -24,8 +24,6 @@ export default function SignupPage() {
         submitText="登録"
         requireNickname={true}
       />
-      <br />
-      <LogoutButton />
     </div>
   );
 }
