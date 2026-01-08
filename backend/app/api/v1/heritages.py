@@ -3,10 +3,12 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.crud.heritage import get_all, get_by_id
+from typing import List
+from app.schemas.heritage import HeritageOut
 
 router = APIRouter()
 
-@router.get("/heritages")
+@router.get("/heritages", response_model=List[HeritageOut])
 def list_heritages(db: Session = Depends(get_db)):
     return get_all(db)
 

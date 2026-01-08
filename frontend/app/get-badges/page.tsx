@@ -3,17 +3,25 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../../components/ui/Card';
 import { BadgeCard } from '../../components/ui/BadgeCard';
+import { apiFetch } from '../../lib/apiFetch';
 
 type VisitsMeResponse = {
   visited_heritage_ids: number[];
   count: number;
 };
 
+type Heritage = {
+  id: number;
+  name: string;
+  badge_image_url: string | null;
+};
+
 type Badge = {
   id: number;
   no: string;
-  name: string; // 本来の名称（locked のときは表示で ??? にする）
+  name: string;
   imageUrl: string;
+  unlocked: boolean;
 };
 
 function getTitleByCount(count: number) {
@@ -27,64 +35,10 @@ function getTitleByCount(count: number) {
 }
 
 export default function GetBadgesPage() {
-  // まずは badge の「マスターデータ」だけを定義（unlocked は API から計算する）
-  const badges: Badge[] = useMemo(
-    () => [
-      {
-        id: 1,
-        no: 'No.001',
-        name: '法隆寺地域の仏教建造物',
-        imageUrl: 'http://localhost:8000/static/badges/badge_1.png',
-      },
-      {
-        id: 2,
-        no: 'No.002',
-        name: '姫路城',
-        imageUrl: 'http://localhost:8000/static/badges/badge_2.png',
-      },
-      {
-        id: 3,
-        no: 'No.003',
-        name: '屋久島',
-        imageUrl: 'http://localhost:8000/static/badges/badge_3.png',
-      },
-      {
-        id: 4,
-        no: 'No.004',
-        name: '白川郷・五箇山の合掌造り集落',
-        imageUrl: 'http://localhost:8000/static/badges/badge_4.png',
-      },
-      {
-        id: 5,
-        no: 'No.005',
-        name: '古都京都の文化財',
-        imageUrl: 'http://localhost:8000/static/badges/badge_5.png',
-      },
-      {
-        id: 6,
-        no: 'No.006',
-        name: '???',
-        imageUrl: 'http://localhost:8000/static/badges/badge_6.png',
-      },
-      {
-        id: 7,
-        no: 'No.007',
-        name: '原爆ドーム',
-        imageUrl: 'http://localhost:8000/static/badges/badge_7.png',
-      },
-      {
-        id: 8,
-        no: 'No.008',
-        name: '???',
-        imageUrl: 'http://localhost:8000/static/badges/placeholder.png',
-      },
-    ],
-    [],
-  );
-
   // API から取得する state
   const [visitedIds, setVisitedIds] = useState<number[]>([]);
   const [count, setCount] = useState(0);
+  const [heritages, setHeritages] = useState<Heritage[]>([]);
 
   // 読み込み・エラー表示
   const [loading, setLoading] = useState(true);
@@ -92,28 +46,26 @@ export default function GetBadgesPage() {
 
   // GET /api/v1/visits/me を読む
   useEffect(() => {
-    const API_BASE =
-      process.env.NEXT_PUBLIC_API_BASE_URL ?? 'NEXT_PUBLIC_API_URL';
-
     const load = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`${API_BASE}/api/v1/visits/me`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          // 認証でCookieを使うなら next line を有効化
-          // credentials: 'include',
-        });
+        const [visits, hs] = await Promise.all([
+          apiFetch<VisitsMeResponse>('/api/v1/visits/me'),
+          apiFetch<Heritage[]>('/api/v1/heritages'),
+        ]);
 
-        if (!res.ok) {
-          throw new Error(`visits/me failed: ${res.status}`);
-        }
+        setVisitedIds(visits.visited_heritage_ids ?? []);
+        setCount(visits.count ?? 0);
 
-        const data: VisitsMeResponse = await res.json();
-        setVisitedIds(data.visited_heritage_ids ?? []);
-        setCount(data.count ?? 0);
+        setHeritages(
+          hs.map((h) => ({
+            id: h.id,
+            name: h.name,
+            badge_image_url: h.badge_image_url ?? null,
+          })),
+        );
       } catch (e) {
         setError(e instanceof Error ? e.message : 'unknown error');
         setVisitedIds([]);
@@ -127,20 +79,26 @@ export default function GetBadgesPage() {
   }, []);
 
   // unlocked を visitedIds から計算して BadgeCard に渡す
-  const badgesForView = useMemo(() => {
+  const badgesForView: Badge[] = useMemo(() => {
     const visitedSet = new Set(visitedIds);
 
-    return badges.map((b) => {
-      const unlocked = visitedSet.has(b.id);
+    return heritages
+      .slice()
+      .sort((a, b) => a.id - b.id)
+      .map((h) => {
+        const unlocked = visitedSet.has(h.id);
 
-      return {
-        ...b,
-        unlocked,
-        // locked のときだけ ??? 表示にする
-        name: unlocked ? b.name : '???',
-      };
-    });
-  }, [badges, visitedIds]);
+        return {
+          id: h.id,
+          no: `No.${String(h.id).padStart(3, '0')}`,
+          name: unlocked ? h.name : '???',
+          imageUrl:
+            h.badge_image_url ??
+            'http://localhost:8000/static/badges/placeholder.png',
+          unlocked,
+        };
+      });
+  }, [heritages, visitedIds]);
 
   const title = getTitleByCount(count);
 
