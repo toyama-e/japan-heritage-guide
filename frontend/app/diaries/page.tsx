@@ -32,6 +32,22 @@ export default function DiaryListPage() {
       text: '有名な杓子のほかにも、宮島土鈴や張り子などならではのお土産もたくさんありました。島内には野生の鹿がいたるところに。奈良の鹿と違って少し気性が荒め？',
       image: 'https://upload.wikimedia.org/wikipedia/commons/e/e8/Itsukushima2001-02.JPG'
     },
+        { 
+      id: 4, 
+      date: '2025年11月10日', 
+      user: 'かみむー', 
+      title: 'そろそろ紅葉がピーク', 
+      text: '私が行った頃には、ちょうど色づきが進んで見頃の直前でした。今はきっとピークを迎えているはず！宮島の紅葉谷は歩いているだけで心が洗われるような美しさです。ぜひカメラを片手に散策に訪れてみてください。',
+      image: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/%E5%AE%AE%E5%B3%B6%E7%B4%85%E8%91%89%E8%B0%B7_-_panoramio.jpg'
+    },
+         { 
+      id: 5, 
+      date: '2025年11月29日', 
+      user: 'ごま', 
+      title: '島中真っ赤でした', 
+      text: '紅葉に誘われて島を一周。有名なスポットも良いですが、少し奥へ歩くと自分だけの絶景が見つかります。色づいた木々の隙間から見える瀬戸内海の青さが最高でした。歩きやすい靴で、ぜひ隅々まで歩いてみてほしいです！',
+      image: 'https://upload.wikimedia.org/wikipedia/commons/6/60/Autumn_colours_on_Miyajima_Island_Japan.jpg'
+    },
   ];
 
   const myDiaries = [

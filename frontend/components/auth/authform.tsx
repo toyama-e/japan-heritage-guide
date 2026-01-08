@@ -4,13 +4,23 @@ import { useState } from 'react';
 import { getIdToken } from '../../lib/auth/getidtoken';
 
 interface AuthFormProps {
-  onSubmit: (email: string, password: string) => Promise<unknown>;
+  onSubmit: (
+    email: string,
+    password: string,
+    nickname?: string,
+  ) => Promise<unknown>;
   submitText: string;
+  requireNickname?: boolean;
 }
 
-export default function AuthForm({ onSubmit, submitText }: AuthFormProps) {
+export default function AuthForm({
+  onSubmit,
+  submitText,
+  requireNickname = false,
+}: AuthFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -19,10 +29,11 @@ export default function AuthForm({ onSubmit, submitText }: AuthFormProps) {
     setMessage(null);
 
     try {
-      await onSubmit(email, password);
+      await onSubmit(email, password, nickname || undefined);
       const token = await getIdToken();
 
       if (process.env.NODE_ENV !== 'production') {
+        console.log('🔥 nickname:', nickname);
         console.log('🔥 success:', email);
         console.log('🔥 Idtoken:', token);
       }
@@ -30,6 +41,7 @@ export default function AuthForm({ onSubmit, submitText }: AuthFormProps) {
       setMessage('登録しました！');
       setEmail('');
       setPassword('');
+      setNickname('');
     } catch (error: unknown) {
       if (error instanceof Error) {
         setMessage(`登録失敗: ${error.message}`);
@@ -43,6 +55,21 @@ export default function AuthForm({ onSubmit, submitText }: AuthFormProps) {
 
   return (
     <div className="mx-auto mt-10 w-full max-w-sm space-y-4">
+      {/* ニックネーム */}
+      {requireNickname && (
+        <input
+          type="text"
+          placeholder="ニックネーム"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          className="
+          w-full rounded-lg border border-gray-300
+          px-4 py-3 text-sm
+          focus:border-black focus:outline-none
+        "
+        />
+      )}
+
       {/* メール */}
       <input
         type="email"
@@ -72,7 +99,9 @@ export default function AuthForm({ onSubmit, submitText }: AuthFormProps) {
       {/* 送信ボタン */}
       <button
         onClick={handleSubmit}
-        disabled={loading || !email || !password}
+        disabled={
+          loading || !email || !password || (requireNickname && !nickname)
+        }
         className="
           w-full rounded-lg bg-black py-3
           text-sm font-medium text-white

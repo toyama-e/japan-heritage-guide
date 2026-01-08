@@ -9,7 +9,7 @@ export default function LoginPage() {
 
   const handleSignIn = async (email: string, password: string) => {
     await signIn(email, password);
-    router.replace('/auth/test_withSignIn');
+    router.replace('/auth/mypage');
   };
 
   return (

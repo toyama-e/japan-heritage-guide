@@ -9,7 +9,7 @@ const items = [
   { href: '/map', label: 'マップ', icon: '/icons/map-icon.png' },
   { href: '/diaries', label: '日記', icon: '/icons/diary-icon.png' },
   { href: '/record', label: '獲得バッジ', icon: '/icons/badge-icon.png' },
-  { href: '/mypage', label: 'マイページ', icon: '/icons/mypage-icon.png' },
+  { href: '/auth/mypage', label: 'マイページ', icon: '/icons/mypage-icon.png' },
 ];
 
 export const BottomTabBar = () => {
