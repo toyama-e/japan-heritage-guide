@@ -1,7 +1,6 @@
 'use client';
 
 import AuthForm from '../../../components/auth/authform';
-import LogoutButton from '../../../components/auth/logoutButton';
 import { signUp } from '../../../lib/auth/signup';
 import { useRouter } from 'next/navigation';
 
