@@ -1,7 +1,9 @@
 from app.core.database import Base
 from sqlalchemy import (
+    String,
     Column,
     Integer,
+    Date,
     DateTime,
     ForeignKey,
     Text,
@@ -26,10 +28,13 @@ class Diary(Base):
     visit_id = Column(
         Integer,
         ForeignKey("visits.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
         index=True,
     )
+    visit_day = Column(Date, nullable=True)
+    title = Column(String, nullable=False)
     text = Column(Text, nullable=False)
+    image_url = Column(String, nullable=True)
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
