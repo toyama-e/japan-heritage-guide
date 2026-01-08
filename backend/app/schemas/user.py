@@ -15,9 +15,9 @@ class UserCreate(BaseModel):
 # 更新用スキーマ
 # ---------------------------
 class UserUpdate(BaseModel):
-    email: Optional[str]
-    nickname: Optional[str]
-    is_public: Optional[bool]
+    email: Optional[str] = None
+    nickname: Optional[str] = None
+    is_public: Optional[bool] = None
 
 # ---------------------------
 # 取得用スキーマ

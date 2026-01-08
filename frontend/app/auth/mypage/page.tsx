@@ -53,7 +53,11 @@ export default function MyPage() {
   };
 
   //handleUpdate submitハンドラー Firebase と DB に同期
-  const handleUpdate = async (email: string, nickname?: string) => {
+  const handleUpdate = async (
+    email: string,
+    _password?: string,
+    nickname?: string,
+  ) => {
     const currentUser = auth.currentUser;
     if (!currentUser) throw new Error('未ログインです');
 
