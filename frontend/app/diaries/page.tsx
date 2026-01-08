@@ -1,136 +1,145 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import useSWR from 'swr';
+
+type DiaryData = {
+  id: number;
+  user_id: number;
+  world_heritage_id: number;
+  visit_id: number | null;
+  visit_day: string | null; // "2025-05-28" など
+  title: string;
+  text: string;
+  image_url: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Fetch failed: ${res.status} ${res.statusText}\n${body}`);
+  }
+  return res.json();
+};
 
 export default function DiaryListPage() {
   const [activeTab, setActiveTab] = useState<'mine' | 'all'>('all');
 
-  // ダミーデータに image プロパティを追加
-  const allDiaries = [
-    { 
-      id: 1, 
-      date: '2026年5月28日', 
-      user: 'ひろ', 
-      title: 'ハイキングにもってこい', 
-      text: '初挑戦の弥山登山。紅葉谷駅までロープウェーで行き、そこから山頂へはなかなか登りがいのある50分の登山コースでした。程よい汗をかいた後に山頂から眺める瀬戸内海は最高です！',
-      image: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Itsukushima_Gate.jpg'
-    },
-    { 
-      id: 2, 
-      date: '2025年8月20日', 
-      user: 'aya', 
-      title: '歴史ロマン', 
-      text: '荘厳ながら優美な社殿！当時の平家の繁栄ぶりが感じられました。夏は緑と赤い社殿のコントラストが美しいけれど、紅葉の季節にも訪れてみたいなあ。',
-      image: 'https://upload.wikimedia.org/wikipedia/commons/6/66/%E5%B9%B3%E6%B8%85%E7%9B%9B%E5%83%8F%EF%BC%88%E5%8E%B3%E5%B3%B6%E7%A5%9E%E7%A4%BE%EF%BC%89.jpg'
-    },
-    { 
-      id: 3, 
-      date: '2025年11月5日', 
-      user: 'えりぴ', 
-      title: 'お土産もたくさん', 
-      text: '有名な杓子のほかにも、宮島土鈴や張り子などならではのお土産もたくさんありました。島内には野生の鹿がいたるところに。奈良の鹿と違って少し気性が荒め？',
-      image: 'https://upload.wikimedia.org/wikipedia/commons/e/e8/Itsukushima2001-02.JPG'
-    },
-        { 
-      id: 4, 
-      date: '2025年11月10日', 
-      user: 'かみむー', 
-      title: 'そろそろ紅葉がピーク', 
-      text: '私が行った頃には、ちょうど色づきが進んで見頃の直前でした。今はきっとピークを迎えているはず！宮島の紅葉谷は歩いているだけで心が洗われるような美しさです。ぜひカメラを片手に散策に訪れてみてください。',
-      image: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/%E5%AE%AE%E5%B3%B6%E7%B4%85%E8%91%89%E8%B0%B7_-_panoramio.jpg'
-    },
-         { 
-      id: 5, 
-      date: '2025年11月29日', 
-      user: 'ごま', 
-      title: '島中真っ赤でした', 
-      text: '紅葉に誘われて島を一周。有名なスポットも良いですが、少し奥へ歩くと自分だけの絶景が見つかります。色づいた木々の隙間から見える瀬戸内海の青さが最高でした。歩きやすい靴で、ぜひ隅々まで歩いてみてほしいです！',
-      image: 'https://upload.wikimedia.org/wikipedia/commons/6/60/Autumn_colours_on_Miyajima_Island_Japan.jpg'
-    },
-  ];
+  const {
+    data: list,
+    error,
+    isLoading,
+  } = useSWR<DiaryData[]>(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/diaries`,
+    fetcher,
+  );
 
-  const myDiaries = [
-    { 
-      id: 1, 
-      date: '2026年5月28日', 
-      user: 'ひろ', 
-      title: 'ハイキングにもってこい', 
-      text: '初挑戦の弥山登山。紅葉谷駅まではロープウェーで行けるけれど、そこから山頂はなかなか登りがいのある50分の登山コースでした。山頂からの瀬戸内海は絶景でした。',
-      image: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Itsukushima_Gate.jpg'
-    },
-  ];
+  // 認証未実装の暫定：自分 = user_id=1 として扱う
+  const CURRENT_USER_ID = 1;
 
-  const displayDiaries = activeTab === 'mine' ? myDiaries : allDiaries;
+  const displayDiaries = useMemo(() => {
+    if (!list) return [];
+    if (activeTab === 'mine') {
+      return list.filter((d) => d.user_id === CURRENT_USER_ID);
+    }
+    return list;
+  }, [list, activeTab]);
+
+  if (error) return <div className="p-4">データ取得に失敗しました</div>;
+  if (isLoading || !list) return <div className="p-4">読み込み中...</div>;
 
   return (
-    <div className="bg-gray-100 min-h-screen text-black">
-      <div className="max-w-md mx-auto bg-white min-h-screen relative pb-20 shadow-xl">
-        
-        {/* ヘッダー */}
-        <header className="flex justify-between items-center p-4 bg-white border-b sticky top-0 z-10">
-          <div className="border border-gray-400 px-4 py-1 text-sm bg-white font-bold">ロゴ</div>
-          <button className="bg-white border border-gray-300 px-4 py-1 rounded-full text-xs">ログイン</button>
-        </header>
-
+    <div className="min-h-screen bg-gray-100 text-black">
+      <div className="relative mx-auto min-h-screen max-w-md bg-white pb-20 shadow-xl">
         {/* タブと投稿ボタンのエリア */}
         <div className="flex items-center justify-between px-6 py-6">
           <div className="flex gap-2">
-            <button 
+            <button
+              type="button"
               onClick={() => setActiveTab('mine')}
-              className={`px-6 py-1.5 rounded-full text-xs shadow-sm transition-colors ${
-                activeTab === 'mine' ? 'bg-gray-400 text-white font-bold' : 'bg-gray-200 text-gray-600'
+              className={`rounded-full px-6 py-1.5 text-xs shadow-sm transition-colors ${
+                activeTab === 'mine'
+                  ? 'bg-gray-400 font-bold text-white'
+                  : 'bg-gray-200 text-gray-600'
               }`}
             >
               マイ日記
             </button>
-            <button 
+            <button
+              type="button"
               onClick={() => setActiveTab('all')}
-              className={`px-6 py-1.5 rounded-full text-xs shadow-sm transition-colors ${
-                activeTab === 'all' ? 'bg-gray-400 text-white font-bold' : 'bg-gray-200 text-gray-600'
+              className={`rounded-full px-6 py-1.5 text-xs shadow-sm transition-colors ${
+                activeTab === 'all'
+                  ? 'bg-gray-400 font-bold text-white'
+                  : 'bg-gray-200 text-gray-600'
               }`}
             >
               みんなの日記
             </button>
           </div>
 
-          <button className="bg-gray-300 w-8 h-8 rounded-full shadow-sm flex items-center justify-center text-gray-600 text-lg cursor-default">
+          {/* 投稿ボタン（リンクにするならここをLinkに変更） */}
+          <button
+            type="button"
+            className="flex h-8 w-8 cursor-default items-center justify-center rounded-full bg-gray-300 text-lg text-gray-600 shadow-sm"
+            aria-label="投稿（未実装）"
+          >
             ＋
           </button>
         </div>
 
         {/* リストエリア */}
-        <main className="px-4 space-y-4">
-          {displayDiaries.map((diary) => (
-            <Link href={`/diaries/${diary.id}`} key={diary.id} className="block active:opacity-70 transition-opacity">
-              <div className="bg-gray-300 rounded-xl p-4 flex gap-4 shadow-sm">
-                {/* 修正ポイント：写真表示エリア */}
-                <div className="w-16 h-16 bg-white rounded-lg flex-shrink-0 overflow-hidden border border-gray-200 shadow-inner">
-                  {diary.image ? (
-                    <img 
-                      src={diary.image} 
-                      alt={diary.title} 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-gray-400">🖼️</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* テキストエリア */}
-                <div className="flex flex-col flex-1">
-                  <div className="text-[10px] text-gray-600 flex gap-2">
-                    <span>{diary.date}</span>
-                    <span>{diary.user}</span>
+        <main className="space-y-4 px-4">
+          {displayDiaries.length === 0 ? (
+            <div className="rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
+              表示できる日記がありません
+            </div>
+          ) : (
+            displayDiaries.map((diary) => (
+              <Link
+                href={`/diaries/${diary.id}`}
+                key={diary.id}
+                className="block transition-opacity active:opacity-70"
+              >
+                <div className="flex gap-4 rounded-xl bg-gray-300 p-4 shadow-sm">
+                  {/* 写真表示エリア */}
+                  <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-inner">
+                    {diary.image_url ? (
+                      <img
+                        src={diary.image_url}
+                        alt={diary.title}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <span className="text-gray-400">🖼️</span>
+                      </div>
+                    )}
                   </div>
-                  <h3 className="text-xs font-bold my-0.5 text-gray-800">{diary.title}</h3>
-                  <p className="text-[10px] text-gray-600 line-clamp-2 leading-tight">{diary.text}</p>
+
+                  {/* テキストエリア */}
+                  <div className="flex flex-1 flex-col">
+                    <div className="flex gap-2 text-[10px] text-gray-600">
+                      <span>{diary.visit_day ?? '日付未設定'}</span>
+                      <span>user:{diary.user_id}</span>
+                    </div>
+                    <h3 className="my-0.5 text-xs font-bold text-gray-800">
+                      {diary.title}
+                    </h3>
+                    <p className="line-clamp-2 text-[10px] leading-tight text-gray-600">
+                      {diary.text}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))
+          )}
         </main>
       </div>
     </div>
