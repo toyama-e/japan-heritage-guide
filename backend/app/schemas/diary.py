@@ -1,33 +1,35 @@
-from datetime import datetime
+from datetime import date, datetime
 from pydantic import BaseModel
-from typing import Optional
 
 
-# 共通項目
 class DiaryBase(BaseModel):
     world_heritage_id: int
-    visit_id: int
+    visit_id: int | None = None
+    visit_day: date | None = None
+    title: str
     text: str
+    image_url: str | None = None
 
 
-# 作成時（POST）
 class DiaryCreate(DiaryBase):
     pass
 
 
-# 更新時（PATCH / PUT）
 class DiaryUpdate(BaseModel):
-    world_heritage_id: Optional[int] = None
-    visit_id: Optional[int] = None
-    text: Optional[str] = None
+    world_heritage_id: int | None = None
+    visit_id: int | None = None
+    visit_day: date | None = None
+    title: str | None = None
+    text: str | None = None
+    image_url: str | None = None
 
 
-# レスポンス用
-class DiaryResponse(DiaryBase):
+class DiaryOut(DiaryBase):
     id: int
     user_id: int
     created_at: datetime
     updated_at: datetime
+    deleted_at: datetime | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # pydantic v2
