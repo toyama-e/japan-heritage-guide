@@ -8,7 +8,7 @@ type CardProps = {
 };
 
 const BASE_CARD_CLASS_NAME =
-  'rounded-lg border border-gray-200 bg-white p-4 shadow-sm';
+  'rounded-lg  p-4 shadow-[5px_7px_10px_-5px_#919191]';
 
 export const Card = ({ children, className }: CardProps) => {
   return (

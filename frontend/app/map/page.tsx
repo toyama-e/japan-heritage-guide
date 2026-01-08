@@ -64,8 +64,7 @@ export default function MapPage() {
                       position={{ lat: Number(spot.latitude), lng: Number(spot.longitude) }}
                       disableAutoPan={true}
                       headerDisabled={true}
-                      // 【重要修正】配列 [x, y] の形式で指定します
-                      pixelOffset={[0, -40]}
+                      pixelOffset={[0, -40]}//InfoWindowとマップピンが重なってチカチカするので少し移動
                     >
                       <div 
                         className="px-2 py-1 text-xs font-bold text-gray-700 bg-white shadow-sm cursor-pointer hover:text-[#6B7B4F]"
