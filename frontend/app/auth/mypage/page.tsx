@@ -7,6 +7,7 @@ import { auth } from '../../../lib/auth/firebase';
 import { updateProfile, updateEmail } from 'firebase/auth';
 import { Button } from '../../../components/ui/Button';
 import AuthForm from '../../../components/auth/authform';
+import { AuthLoginCheck } from '../../../components/auth/authLoginCheck';
 
 type UserData = {
   email?: string | null;
@@ -15,10 +16,9 @@ type UserData = {
 
 const fetcherWithToken = async (url: string) => {
   const token = await getIdToken();
-  if (!token) throw new Error('未サインインです');
 
   const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: token ? `Bearer ${token}` : '' },
   });
 
   if (!res.ok) throw new Error(`API取得失敗: ${res.status}`);
@@ -29,27 +29,23 @@ export default function MyPage() {
   const [tokenReady, setTokenReady] = useState(false);
   const [editable, setEditable] = useState(false);
 
-  const {
-    data: user,
-    error,
-    isLoading,
-    mutate,
-  } = useSWR<UserData>(
-    tokenReady ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/me` : null,
-    fetcherWithToken,
-  );
-
-  //Firebase Auth の ログイン状態監視
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(() => {
-      setTokenReady(!!auth.currentUser);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setTokenReady(true);
+      }
     });
     return () => unsubscribe();
   }, []);
 
+  const { data: user, mutate } = useSWR<UserData>(
+    tokenReady ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/me` : null,
+    fetcherWithToken,
+  );
+
+  //Firebase Auth の ログアウト
   const handleLogout = async () => {
     await auth.signOut();
-    alert('ログアウトしました');
   };
 
   //handleUpdate submitハンドラー Firebase と DB に同期
@@ -59,7 +55,10 @@ export default function MyPage() {
     nickname?: string,
   ) => {
     const currentUser = auth.currentUser;
-    if (!currentUser) throw new Error('未ログインです');
+    if (!currentUser) {
+      alert('再ログインしてください');
+      return;
+    }
 
     //Firebase Auth 側を更新
     if (nickname && nickname !== currentUser.displayName) {
@@ -88,40 +87,46 @@ export default function MyPage() {
     setEditable(false);
   };
 
-  if (isLoading) return <div>確認中...</div>;
-  if (error) return <div>エラー:{error.message}</div>;
-  if (!user) return <div>ユーザー情報がありません</div>;
+  if (!user) {
+    return (
+      <AuthLoginCheck>
+        <div className="max-w-md mx-auto p-4">読み込み中...</div>
+      </AuthLoginCheck>
+    );
+  }
 
   return (
-    <div className="max-w-md mx-auto p-4">
-      <h1 className="text-xl font-bold mb-4">マイページ</h1>
+    <AuthLoginCheck>
+      <div className="max-w-md mx-auto p-4">
+        <h1 className="text-xl font-bold mb-4">マイページ</h1>
 
-      {editable ? (
-        // 編集モード
-        <AuthForm
-          submitText="更新"
-          requireNickname={true} // ニックネーム欄を表示
-          onSubmit={handleUpdate} // 更新処理を渡す
-          showPassword={false} // パスワード欄は非表示（マイページ用）
-          initialEmail={user.email || ''} // 初期値に現在のメールをセット
-          initialNickname={user.nickname || ''} // 初期値に現在のニックネームをセット
-        />
-      ) : (
-        // 表示モード
-        <>
-          <p className="mb-4">メール : {user.email}</p>
-          <p className="mb-4">ニックネーム : {user.nickname}</p>
-          <p className="mb-4">パスワード : ※※※※※※※※</p>
-        </>
-      )}
+        {editable ? (
+          // 編集モード
+          <AuthForm
+            submitText="更新"
+            requireNickname={true} // ニックネーム欄を表示
+            onSubmit={handleUpdate} // 更新処理を渡す
+            showPassword={false} // パスワード欄は非表示（マイページ用）
+            initialEmail={user.email || ''} // 初期値に現在のメールをセット
+            initialNickname={user.nickname || ''} // 初期値に現在のニックネームをセット
+          />
+        ) : (
+          // 表示モード
+          <>
+            <p className="mb-4">ニックネーム : {user.nickname}</p>
+            <p className="mb-4">メール : {user.email}</p>
+            <p className="mb-4">パスワード : ※※※※※※※※</p>
+          </>
+        )}
 
-      {/* ボタン類 */}
-      <div className="flex gap-2 mt-4">
-        <Button onClick={() => setEditable(!editable)}>
-          {editable ? 'キャンセル' : '変更'}
-        </Button>
-        <Button onClick={handleLogout}>ログアウト</Button>
+        {/* ボタン類 */}
+        <div className="flex gap-2 mt-4">
+          <Button onClick={() => setEditable(!editable)}>
+            {editable ? 'キャンセル' : '変更'}
+          </Button>
+          <Button onClick={handleLogout}>ログアウト</Button>
+        </div>
       </div>
-    </div>
+    </AuthLoginCheck>
   );
 }
