@@ -8,6 +8,7 @@ import { updateProfile, updateEmail } from 'firebase/auth';
 import { Button } from '../../../components/ui/Button';
 import AuthForm from '../../../components/auth/authform';
 import { AuthLoginCheck } from '../../../components/auth/authLoginCheck';
+import Diary from '../../../components/mypage-daiarise';
 
 type UserData = {
   email?: string | null;
@@ -125,6 +126,10 @@ export default function MyPage() {
             {editable ? 'キャンセル' : '変更'}
           </Button>
           <Button onClick={handleLogout}>ログアウト</Button>
+        </div>
+        {/* ↓ コンポーネントを表示 ↓ */}
+        <div className="mt-8">
+          <Diary />
         </div>
       </div>
     </AuthLoginCheck>
