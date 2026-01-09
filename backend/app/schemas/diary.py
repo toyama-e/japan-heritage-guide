@@ -33,3 +33,17 @@ class DiaryOut(DiaryBase):
 
     class Config:
         from_attributes = True  # pydantic v2
+
+class DiaryListItem(BaseModel):
+    id: int
+    user_id: int
+    world_heritage_id: int
+    world_heritage_name: str | None
+    visit_day: date | None
+    title: str
+    text: str
+    image_url: str | None
+    user_nickname: str | None
+
+    class Config:
+        from_attributes = True
