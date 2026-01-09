@@ -1,9 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import Image from 'next/image';
+import { getIdToken } from '../../lib/auth/getidtoken';
+import { AuthLoginCheck } from '../../components/auth/authLoginCheck';
 
 type DiaryData = {
   id: number;
@@ -21,135 +23,132 @@ type DiaryData = {
   world_heritage_name: string | null;
 };
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
+const fetcherWithToken = async (url: string) => {
+  const token = await getIdToken();
+  // 未ログインなら AuthLoginCheck がリダイレクトする想定なので、ここはエラーでOK
+  if (!token) throw new Error('Not authenticated');
+
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     throw new Error(`Fetch failed: ${res.status} ${res.statusText}\n${body}`);
   }
-  return res.json();
+  return res.json() as Promise<DiaryData[]>;
 };
 
 export default function DiaryListPage() {
   const [activeTab, setActiveTab] = useState<'mine' | 'all'>('all');
+  const scope = activeTab === 'mine' ? 'mine' : 'all';
 
   const {
     data: list,
     error,
     isLoading,
   } = useSWR<DiaryData[]>(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/diaries`,
-    fetcher,
+    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/diaries?scope=${scope}`,
+    fetcherWithToken,
   );
 
-  // 認証未実装の暫定：自分 = user_id=1 として扱う
-  const CURRENT_USER_ID = 20;
-
-  const displayDiaries = useMemo(() => {
-    if (!list) return [];
-    if (activeTab === 'mine') {
-      return list.filter((d) => d.user_id === CURRENT_USER_ID);
-    }
-    return list;
-  }, [list, activeTab]);
-
-  if (error) return <div className="p-4">データ取得に失敗しました</div>;
-  if (isLoading || !list) return <div className="p-4">読み込み中...</div>;
-
   return (
-    <div className="relative">
-      {/* タブと投稿ボタンのエリア */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab('mine')}
-            className={`rounded-full px-6 py-1.5 text-xs shadow-sm transition-colors ${
-              activeTab === 'mine'
-                ? 'bg-[#F2A96D] font-bold text-white'
-                : 'bg-[#FBE3CF] text-gray-600'
-            }`}
-          >
-            マイ日記
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('all')}
-            className={`rounded-full px-6 py-1.5 text-xs shadow-sm transition-colors ${
-              activeTab === 'all'
-                ? 'bg-[#F2A96D] font-bold text-white'
-                : 'bg-[#FBE3CF] text-gray-600'
-            }`}
-          >
-            みんなの日記
-          </button>
-        </div>
+    <AuthLoginCheck>
+      {error ? (
+        <div className="p-4">データ取得に失敗しました</div>
+      ) : isLoading || !list ? (
+        <div className="p-4">読み込み中...</div>
+      ) : (
+        <div className="relative">
+          {/* タブ */}
+          <div className="mb-5 flex items-center justify-between">
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab('mine')}
+                className={`rounded-full px-6 py-1.5 text-xs shadow-sm transition-colors ${
+                  activeTab === 'mine'
+                    ? 'bg-[#F2A96D] font-bold text-white'
+                    : 'bg-[#FBE3CF] text-gray-600'
+                }`}
+              >
+                マイ日記
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('all')}
+                className={`rounded-full px-6 py-1.5 text-xs shadow-sm transition-colors ${
+                  activeTab === 'all'
+                    ? 'bg-[#F2A96D] font-bold text-white'
+                    : 'bg-[#FBE3CF] text-gray-600'
+                }`}
+              >
+                みんなの日記
+              </button>
+            </div>
 
-        {/* 投稿ボタン（リンクにするならここをLinkに変更） */}
-        <button
-          type="button"
-          className="flex h-8 w-8 cursor-default items-center justify-center rounded-full bg-[#D3D6C6] text-lg text-gray-600 shadow-sm"
-          aria-label="投稿（未実装）"
-        >
-          ＋
-        </button>
-      </div>
-
-      {/* リストエリア */}
-      <div className="main">
-        {displayDiaries.length === 0 ? (
-          <div className="rounded-lg bg-gray-50 p-4 text-sm">
-            表示できる日記がありません
-          </div>
-        ) : (
-          displayDiaries.map((diary) => (
-            <Link
-              href={`/diaries/${diary.id}`}
-              key={diary.id}
-              className="block transition-opacity active:opacity-70 mb-5"
+            <button
+              type="button"
+              className="flex h-8 w-8 cursor-default items-center justify-center rounded-full bg-[#D3D6C6] text-lg text-gray-600 shadow-sm"
             >
-              <div className="flex gap-4 rounded-xl bg-white p-4 shadow-sm">
-                {/* 写真表示エリア */}
-                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-inner">
-                  {diary.image_url ? (
-                    <img
-                      src={diary.image_url}
-                      alt={diary.title}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <Image
-                        src="/images/header-image.png"
-                        alt="日記画像"
-                        width={80}
-                        height={80}
-                        className="cursor-pointer"
-                      />
-                    </div>
-                  )}
-                </div>
+              ＋
+            </button>
+          </div>
 
-                {/* テキストエリア */}
-                <div className="flex flex-1 flex-col">
-                  <div className="flex gap-2 text-[10px] text-gray-600">
-                    <span>{diary.visit_day ?? '日付未設定'}</span>
-                    <span>{diary.user_nickname}</span>
-                    <span>{diary.world_heritage_name}</span>
-                  </div>
-                  <h3 className="my-0.5 text-xs font-bold text-gray-800">
-                    {diary.title}
-                  </h3>
-                  <p className="line-clamp-2 text-[10px] leading-tight text-gray-600">
-                    {diary.text}
-                  </p>
-                </div>
+          {/* 一覧 */}
+          <div className="main">
+            {list.length === 0 ? (
+              <div className="rounded-lg bg-gray-50 p-4 text-sm">
+                表示できる日記がありません
               </div>
-            </Link>
-          ))
-        )}
-      </div>
-    </div>
+            ) : (
+              list.map((diary) => (
+                <Link
+                  href={`/diaries/${diary.id}`}
+                  key={diary.id}
+                  className="mb-5 block transition-opacity active:opacity-70"
+                >
+                  <div className="flex gap-4 rounded-xl bg-white p-4 shadow-sm">
+                    <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-inner">
+                      {diary.image_url ? (
+                        <img
+                          src={diary.image_url}
+                          alt={diary.title}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <Image
+                            src="/images/header-image.png"
+                            alt="日記画像"
+                            width={80}
+                            height={80}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-1 flex-col">
+                      <div className="flex gap-2 text-[10px] text-gray-600">
+                        <span>{diary.visit_day ?? '日付未設定'}</span>
+                        <span>{diary.user_nickname ?? '名無し'}</span>
+                        <span>{diary.world_heritage_name ?? ''}</span>
+                      </div>
+                      <h3 className="my-0.5 text-xs font-bold text-gray-800">
+                        {diary.title}
+                      </h3>
+                      <p className="line-clamp-2 text-[10px] leading-tight text-gray-600">
+                        {diary.text}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </AuthLoginCheck>
   );
 }
