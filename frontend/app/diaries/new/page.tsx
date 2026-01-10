@@ -339,24 +339,23 @@ export default function DiaryNewPage() {
             </div>
           )}
         </label>
-
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={submitting}
-          className="mt-4 w-full rounded-lg bg-[#6B7B4F] py-3 text-white disabled:opacity-50"
-        >
-          {submitting ? '作成中…' : '作成する'}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="mt-3 w-full rounded-lg bg-gray-100 py-3 text-gray-700 shadow-d"
-        >
-          戻る
-        </button>
       </div>
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={submitting}
+        className="mt-4 w-full rounded-lg bg-[#6B7B4F] py-3 text-white disabled:opacity-50 shadow-sm"
+      >
+        {submitting ? '作成中…' : '作成する'}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => router.back()}
+        className="mt-3 w-full rounded-lg bg-gray-100 py-3 text-gray-700 shadow-sm"
+      >
+        戻る
+      </button>
     </AuthLoginCheck>
   );
 }
