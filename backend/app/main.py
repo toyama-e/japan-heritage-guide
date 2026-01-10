@@ -27,8 +27,6 @@ def startup_event():
 
 # ===== API ルーティング =====
 app.include_router(api_v1_router, prefix="/api/v1")
-app.include_router(firebase_router, prefix="/api/v1")
-app.include_router(me_router, prefix="/api/v1")
 
 # ===== 静的ファイル配信 =====
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
