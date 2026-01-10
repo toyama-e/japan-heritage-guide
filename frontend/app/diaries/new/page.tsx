@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { createClient } from '@supabase/supabase-js';
@@ -59,32 +59,23 @@ async function uploadDiaryImage(file: File): Promise<string> {
   const ext = file.name.split('.').pop() || 'jpg';
   const filePath = `diaries/${crypto.randomUUID()}.${ext}`;
 
-  // ✅ ここが重要：必ずコンソールに出す
   console.log('[upload] start');
   console.log('[upload] supabaseUrl=', supabaseUrl);
   console.log('[upload] bucket=', DIARY_BUCKET);
   console.log('[upload] filePath=', filePath);
-  console.log('[upload] file=', {
-    name: file.name,
-    type: file.type,
-    size: file.size,
-  });
 
   const { data, error } = await supabase.storage
     .from(DIARY_BUCKET)
     .upload(filePath, file, {
       cacheControl: '3600',
       upsert: false,
-      // typeが空のときもあるので保険
       contentType: file.type || 'image/png',
     });
 
-  // ✅ ここが重要：結果を必ず出す
   console.log('[upload] result data=', data);
   console.log('[upload] result error=', error);
 
   if (error) {
-    // message が空でも見えるように JSON.stringify で全部出す
     throw new Error(`画像アップロード失敗: ${JSON.stringify(error)}`);
   }
 
@@ -94,9 +85,7 @@ async function uploadDiaryImage(file: File): Promise<string> {
 
   console.log('[upload] publicUrl=', pub?.publicUrl);
 
-  if (!pub?.publicUrl) {
-    throw new Error('画像URLの取得に失敗しました');
-  }
+  if (!pub?.publicUrl) throw new Error('画像URLの取得に失敗しました');
 
   return pub.publicUrl;
 }
@@ -113,12 +102,35 @@ export default function DiaryNewPage() {
     fetcher,
   );
 
+  // --------------------
+  // select風プルダウン用 state
+  // --------------------
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
   // フォーム状態
   const [worldHeritageId, setWorldHeritageId] = useState<number | null>(null);
   const [visitDay, setVisitDay] = useState<string>('');
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+
+  const selectedHeritageName = useMemo(() => {
+    if (!heritages || worldHeritageId === null) return '';
+    return heritages.find((h) => h.id === worldHeritageId)?.name ?? '';
+  }, [heritages, worldHeritageId]);
+
+  // 外側クリックで閉じる（任意だけどあると快適）
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!wrapperRef.current) return;
+      if (!wrapperRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
 
   const previewUrl = useMemo(() => {
     if (!imageFile) return null;
@@ -127,11 +139,6 @@ export default function DiaryNewPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  const selectedHeritage = useMemo(() => {
-    if (!heritages || !worldHeritageId) return null;
-    return heritages.find((h) => h.id === worldHeritageId) ?? null;
-  }, [heritages, worldHeritageId]);
 
   const handleSubmit = async () => {
     setErrorMsg(null);
@@ -165,8 +172,6 @@ export default function DiaryNewPage() {
         image_url: imageUrl,
       };
 
-      console.log('[submit] payload=', payload);
-
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/diaries`,
         {
@@ -181,32 +186,23 @@ export default function DiaryNewPage() {
 
       if (!res.ok) {
         const body = await res.text().catch(() => '');
-        console.error('[submit] diary create failed:', res.status, body);
         throw new Error(`作成に失敗しました: ${res.status}\n${body}`);
       }
 
       const created = (await res.json()) as DiaryCreateResponse;
-      console.log('[submit] created=', created);
-
       router.push(`/diaries/${created.id}?created=1`);
     } catch (e) {
-      console.error('[DiaryNewPage] error=', e);
-
-      if (e instanceof Error) {
-        setErrorMsg(e.message);
-      } else {
-        setErrorMsg(`作成に失敗しました: ${JSON.stringify(e)}`);
-      }
+      if (e instanceof Error) setErrorMsg(e.message);
+      else setErrorMsg(`作成に失敗しました: ${JSON.stringify(e)}`);
     } finally {
       setSubmitting(false);
-      console.log('[submit] end');
     }
   };
 
   return (
     <AuthLoginCheck>
-      <div className="mx-auto max-w-md p-4 bg-white rounded-lg shadow-sm">
-        <h2 className="mb-4 text-xl font-bold border border-solid">
+      <div className="mx-auto max-w-md rounded-lg bg-white p-4 shadow-sm">
+        <h2 className="mb-6 border-b border-[#927D5C] pb-2 text-2xl font-bold">
           日記を作成
         </h2>
 
@@ -222,37 +218,46 @@ export default function DiaryNewPage() {
           </div>
         )}
 
-        {/* 世界遺産プルダウン */}
-        <label className="mb-3 block">
+        {/* 世界遺産プルダウン（select風） */}
+        <div className="relative mb-3" ref={wrapperRef}>
           <div className="mb-1 text-sm text-gray-700">どこの世界遺産？</div>
-          <select
-            value={worldHeritageId ?? ''}
-            onChange={(e) =>
-              setWorldHeritageId(e.target.value ? Number(e.target.value) : null)
-            }
-            className="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm"
-            disabled={heritageLoading || !heritages}
-          >
-            <option value="">
-              {heritageLoading ? '読み込み中...' : '選択してください'}
-            </option>
-            {(heritages ?? []).map((h) => (
-              <option key={h.id} value={h.id}>
-                {h.name}
-                {h.address ? `（${h.address}）` : ''}
-              </option>
-            ))}
-          </select>
-        </label>
 
-        {selectedHeritage && (
-          <div className="mb-4 rounded-lg border border-gray-200 bg-white p-3 text-sm">
-            <div className="font-bold">{selectedHeritage.name}</div>
-            <div className="text-xs text-gray-600">
-              {selectedHeritage.address ?? ''}
+          <button
+            type="button"
+            className="w-full text-left"
+            onClick={() => setIsOpen((v) => !v)}
+            disabled={heritageLoading || submitting}
+          >
+            <input
+              value={selectedHeritageName}
+              readOnly
+              placeholder={heritageLoading ? '読み込み中...' : '世界遺産を選択'}
+              className="w-full rounded-lg border border-gray-300 p-2 text-sm"
+            />
+          </button>
+
+          {isOpen && !!heritages?.length && (
+            <div className="absolute z-10 mt-2 max-h-48 w-full overflow-y-auto rounded-md border border-gray-300 bg-white shadow">
+              {heritages.map((h) => (
+                <button
+                  key={h.id}
+                  type="button"
+                  className={
+                    worldHeritageId === h.id
+                      ? 'block w-full bg-gray-100 px-3 py-2 text-left text-sm font-medium'
+                      : 'block w-full px-3 py-2 text-left text-sm hover:bg-gray-100'
+                  }
+                  onClick={() => {
+                    setWorldHeritageId(h.id);
+                    setIsOpen(false); // ✅ 選択したら閉じる
+                  }}
+                >
+                  {h.id}: {h.name}
+                </button>
+              ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* 訪問日 */}
         <label className="mb-3 block">
@@ -289,13 +294,40 @@ export default function DiaryNewPage() {
 
         {/* 画像 */}
         <label className="mb-4 block">
-          <div className="mb-1 text-sm text-gray-700">写真（任意）</div>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
-            className="w-full text-sm"
-          />
+          <div className="mb-1 text-sm font-medium text-gray-700">
+            写真（任意）
+          </div>
+
+          <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl shadow-sm">
+                  📷
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-700">
+                    画像をアップロード
+                  </p>
+                  <p className="text-xs text-gray-500">JPG / PNG など（1枚）</p>
+                </div>
+              </div>
+            </div>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+              className="mt-3 block w-full text-sm
+                file:mr-3 file:rounded-full file:border-0
+                file:bg-[#6B7B4F] file:px-4 file:py-2
+                file:text-white file:font-bold
+                hover:file:opacity-90"
+            />
+
+            <p className="mt-2 text-[11px] text-gray-500">
+              ※スマホの場合は写真アプリ/カメラが選べます
+            </p>
+          </div>
 
           {previewUrl && (
             <div className="mt-3 overflow-hidden rounded-lg border border-gray-200">
@@ -312,7 +344,7 @@ export default function DiaryNewPage() {
           type="button"
           onClick={handleSubmit}
           disabled={submitting}
-          className="w-full rounded-lg bg-[#6B7B4F] py-3 text-white disabled:opacity-50"
+          className="mt-4 w-full rounded-lg bg-[#6B7B4F] py-3 text-white disabled:opacity-50"
         >
           {submitting ? '作成中…' : '作成する'}
         </button>
@@ -320,7 +352,7 @@ export default function DiaryNewPage() {
         <button
           type="button"
           onClick={() => router.back()}
-          className="mt-3 w-full rounded-lg bg-gray-100 py-3 text-gray-700"
+          className="mt-3 w-full rounded-lg bg-gray-100 py-3 text-gray-700 shadow-d"
         >
           戻る
         </button>
