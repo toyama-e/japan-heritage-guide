@@ -5,28 +5,32 @@ import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+//カードを追加（スマホで見やすいように。サマリーと画像を追加）
 interface Heritage {
   id: number;
   name: string;
   latitude: number;
   longitude: number;
-  description?: string;
+  summary?: string; 
   image_url?: string;
 }
 
 export default function MapPage() {
   const [heritages, setHeritages] = useState<Heritage[]>([]);
- 
   const [selectedSpot, setSelectedSpot] = useState<Heritage | null>(null);
-  
   const router = useRouter();
   
-  // 環境変数からAPIキーとURLを取得
+  //googe maps APIキーと、API URLはenvへ。
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
   const mapId = '41d078aca33e110ef21a23f5';
 
   useEffect(() => {
+    if (!apiUrl) {
+      console.warn("APIのURLが設定されていません。");
+      return;
+    }
+
     const fetchHeritages = async () => {
       try {
         const response = await fetch(`${apiUrl}/api/v1/heritages`);
@@ -48,14 +52,12 @@ export default function MapPage() {
         {apiKey && (
           <APIProvider apiKey={apiKey}>
             <Map
-              // 最初は日本地図全体を映す
               defaultCenter={{ lat: 37.5, lng: 137.5 }} 
               defaultZoom={5}
               gestureHandling={'greedy'}
               disableDefaultUI={true}
               mapId={mapId}
               style={{ width: '100%', height: '100%' }}
-              // 地図の余白をタップしたらボトムシートが閉じる
               onClick={() => setSelectedSpot(null)}
             >
               {heritages.map((spot) => (
@@ -73,29 +75,49 @@ export default function MapPage() {
         )}
       </div>
 
-      {/* 2. スマホ用ボトムシート（詳細パネル） */}
+      {/* 2. ボトムシート（詳細パネル） */}
       <div 
         className={`fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.15)] transition-transform duration-300 ease-out transform ${
           selectedSpot ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{ maxWidth: '28rem', margin: '0 auto' }} 
       >
-        {/* つまみ部分（デザイン用） */}
+        {/* つまみ（閉じる） */}
         <div className="flex justify-center p-3 cursor-pointer" onClick={() => setSelectedSpot(null)}>
           <div className="w-12 h-1.5 bg-gray-200 rounded-full" />
         </div>
 
         {selectedSpot && (
           <div className="px-6 pb-10 pt-2">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h2 className="text-xl font-bold text-gray-800 leading-tight">{selectedSpot.name}</h2>
+            
+            {/* 遺産の写真表示エリア */}
+            {selectedSpot.image_url && (
+              <div className="mb-4 -mx-6 overflow-hidden border-b border-gray-100">
+                <img
+                  src={selectedSpot.image_url}
+                  alt={selectedSpot.name}
+                  className="w-full h-48 object-cover"
+                />
               </div>
-              <button onClick={() => setSelectedSpot(null)} className="text-gray-300 hover:text-gray-500 text-2xl">✕</button>
+            )}
+
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex-1 pr-4">
+                <h2 className="text-xl font-bold text-gray-800 leading-tight">
+                  {selectedSpot.name}
+                </h2>
+              </div>
+              <button 
+                onClick={() => setSelectedSpot(null)} 
+                className="text-gray-300 hover:text-gray-500 text-2xl"
+              >
+                ✕
+              </button>
             </div>
 
-            <p className="text-xs text-gray-500 mb-6 leading-relaxed">
-              {selectedSpot.description || "この遺産についての詳細な情報を確認しましょう。"}
+            {/* 概要テキスト（APIのsummary） */}
+            <p className="text-sm text-gray-600 mb-6 leading-relaxed line-clamp-3">
+              {selectedSpot.summary || "日本の歴史を象徴する、貴重な文化遺産です。"}
             </p>
 
             <button 
