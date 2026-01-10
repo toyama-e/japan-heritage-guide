@@ -3,12 +3,12 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.firebase_dependency import get_current_user
 from app.models.user import User as DBUser
-from app.schemas.diary import DiaryListItem, DiaryDetail, DiaryCreate
+from app.schemas.diary import DiaryListItem2, DiaryDetail, DiaryCreate
 from app.crud.diary import get_list_item, get_detail_item, create_diary
 
 router = APIRouter()
 
-@router.get("/diaries", response_model=list[DiaryListItem], tags=["Diary"])
+@router.get("/diaries", response_model=list[DiaryListItem2], tags=["Diary"])
 def list_diaries(
     scope: str = "all",
     skip: int = 0,

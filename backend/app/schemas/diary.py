@@ -8,7 +8,20 @@ class DiaryBase(BaseModel):
     title: str
     text: str
     image_url: str | None = None
+
 class DiaryListItem(BaseModel):
+    id: int
+    user_id: int
+    world_heritage_id: int
+    world_heritage_name: str | None
+    visit_day: date | None
+    title: str
+    text: str
+    image_url: str | None
+    user_nickname: str | None
+    class Config:
+        from_attributes = True
+class DiaryListItem2(BaseModel):
     id: int
     user_id: int
     user_nickname: str | None
