@@ -4,11 +4,14 @@ import useSWR from 'swr';
 import { getIdToken } from '../../../lib/auth/getidtoken';
 import { useEffect, useState } from 'react';
 import { auth } from '../../../lib/auth/firebase';
-import { updateProfile, updateEmail } from 'firebase/auth';
-import { Button } from '../../../components/ui/Button';
-import AuthForm from '../../../components/auth/authform';
+import {
+  updateProfile,
+  updateEmail,
+  signOut as firebaseSignOut,
+} from 'firebase/auth';
 import { AuthLoginCheck } from '../../../components/auth/authLoginCheck';
-import Diary from '../../../components/mypage-daiarise';
+import Diary from '../../../components/auth/mypage-daiarise';
+import UserCard from '../../../components/auth/userCard';
 
 type UserData = {
   email?: string | null;
@@ -28,7 +31,6 @@ const fetcherWithToken = async (url: string) => {
 
 export default function MyPage() {
   const [tokenReady, setTokenReady] = useState(false);
-  const [editable, setEditable] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -43,11 +45,6 @@ export default function MyPage() {
     tokenReady ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/me` : null,
     fetcherWithToken,
   );
-
-  //Firebase Auth の ログアウト
-  const handleLogout = async () => {
-    await auth.signOut();
-  };
 
   //handleUpdate submitハンドラー Firebase と DB に同期
   const handleUpdate = async (
@@ -85,7 +82,11 @@ export default function MyPage() {
     const updated = await res.json();
     mutate(updated);
     alert('更新成功');
-    setEditable(false);
+  };
+
+  //signOut を引数なしで呼ぶラッパー関数
+  const handleLogout = () => {
+    firebaseSignOut(auth); // auth 引数を渡す
   };
 
   if (!user) {
@@ -99,36 +100,16 @@ export default function MyPage() {
   return (
     <AuthLoginCheck>
       <div className="max-w-md mx-auto p-4">
-        <h1 className="text-xl font-bold mb-4">マイページ</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center tracking-wide">
+          マイページ
+        </h1>
 
-        {editable ? (
-          // 編集モード
-          <AuthForm
-            submitText="更新"
-            requireNickname={true} // ニックネーム欄を表示
-            onSubmit={handleUpdate} // 更新処理を渡す
-            showPassword={false} // パスワード欄は非表示（マイページ用）
-            initialEmail={user.email || ''} // 初期値に現在のメールをセット
-            initialNickname={user.nickname || ''} // 初期値に現在のニックネームをセット
-          />
-        ) : (
-          // 表示モード
-          <>
-            <p className="mb-4">ニックネーム : {user.nickname}</p>
-            <p className="mb-4">メール : {user.email}</p>
-            <p className="mb-4">パスワード : ※※※※※※※※</p>
-          </>
-        )}
+        {/* ユーザー情報カード */}
+        <UserCard user={user} onUpdate={handleUpdate} onLogout={handleLogout} />
 
-        {/* ボタン類 */}
-        <div className="flex gap-2 mt-4">
-          <Button onClick={() => setEditable(!editable)}>
-            {editable ? 'キャンセル' : '変更'}
-          </Button>
-          <Button onClick={handleLogout}>ログアウト</Button>
-        </div>
-        {/* ↓ コンポーネントを表示 ↓ */}
+        {/* 日記リスト */}
         <div className="mt-8">
+          <h2 className="text-2xl font-semibold mb-4">マイ日記</h2>
           <Diary />
         </div>
       </div>

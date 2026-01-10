@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.models.diary import Diary
+from app.models.me_diary import MeDiary
 from app.models.heritage import WorldHeritage
 from app.core.firebase_dependency import get_current_user
 from pydantic import BaseModel
+from datetime import date, datetime
 from typing import List
 
 router = APIRouter()
@@ -13,8 +14,13 @@ router = APIRouter()
 # レスポンススキーマ（Pydantic V2）
 # ---------------------------
 class DiaryResponse(BaseModel):
+    id: int
     worldheritage_name: str
-    visit_day: str  # ISO形式文字列
+    visit_day: date
+    created_at: datetime
+    title: str | None
+    text: str | None
+    image_url:str | None 
 
     model_config = {
         "from_attributes": True  # V2では orm_mode の代わり
@@ -23,7 +29,7 @@ class DiaryResponse(BaseModel):
 # ---------------------------
 # API: カレントユーザーの訪問日記を取得
 # ---------------------------
-@router.get("/diaries", response_model=List[DiaryResponse], tags=["Diary"])
+@router.get("/", response_model=List[DiaryResponse], tags=["me_diarise"])
 def read_my_diaries(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -37,29 +43,38 @@ def read_my_diaries(
     diaries = (
         db.query(
             WorldHeritage.name.label("worldheritage_name"),
-            Diary.visit_day
+            MeDiary.id,
+            MeDiary.visit_day,
+            MeDiary.created_at,
+            MeDiary.title,
+            MeDiary.text,
+            MeDiary.image_url
         )
-        .join(WorldHeritage, WorldHeritage.id == Diary.world_heritage_id)
+        .join(WorldHeritage, WorldHeritage.id == MeDiary.world_heritage_id)
         .filter(
-            Diary.user_id == current_user.id,
-            Diary.deleted_at.is_(None)
+            MeDiary.user_id == current_user.id,
         )
-        .order_by(Diary.visit_day.desc())
+        .order_by(MeDiary.visit_day.desc())
         .all()
     )
 
     # ログ用に内容を確認
     for row in diaries:
-        print(f"[Diary API] Diary: {row.worldheritage_name}, {row.visit_day}")
+        print(f"[me_Diary API] Diary: {row.worldheritage_name}, {row.visit_day}")
 
-    # Pydantic V2対応、ISO文字列で返す
+    # Pydantic V2対応
     response = [
         DiaryResponse(
+            id=row.id,
             worldheritage_name=row.worldheritage_name,
-            visit_day=row.visit_day.isoformat()
+            visit_day=row.visit_day,
+            created_at=row.created_at,
+            title=row.title,
+            text=row.text,
+            image_url=row.image_url,
         )
         for row in diaries
     ]
 
-    print(f"[Diary API] Returning {len(response)} diaries")
+    print(f"[me_Diary API] Returning {len(response)} diaries")
     return response
