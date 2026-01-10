@@ -2,7 +2,6 @@
 import { getIdToken } from '../lib/auth/getidtoken';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
-const DEV_USER_ID = process.env.NEXT_PUBLIC_DEV_USER_ID || '1';
 
 type ApiFetchOptions<TBody = unknown> = Omit<
   RequestInit,
@@ -23,18 +22,13 @@ async function attachAuth(headers: HeadersInit): Promise<HeadersInit> {
   const h = new Headers(headers);
 
   const token = await getIdToken();
-  if (token) {
-    h.set('Authorization', `Bearer ${token}`);
+  if (!token) {
+    // ここで落とす：ログインしてないならAPI叩かない
+    // （UI側でログイン導線を出すのが理想）
+    throw new Error('ログインが必要です（IDトークンが取得できません）');
   }
 
-  // ★ いつでも送る（バックエンドが dev auth 前提のため）
-  h.set('X-User-Id', DEV_USER_ID);
-
-  // ★デバッグ（原因が分かったら消す）
-  console.log('[apiFetch] auth headers:', {
-    authorization: h.get('Authorization'),
-    xUserId: h.get('X-User-Id'),
-  });
+  h.set('Authorization', `Bearer ${token}`);
 
   return h;
 }
