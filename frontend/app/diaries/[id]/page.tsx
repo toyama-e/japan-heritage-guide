@@ -1,10 +1,12 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import Image from 'next/image';
 import { getIdToken } from '../../../lib/auth/getidtoken';
 import { AuthLoginCheck } from '../../../components/auth/authLoginCheck';
+import Link from 'next/link';
 
 type DiaryDetail = {
   id: number;
@@ -20,7 +22,7 @@ type DiaryDetail = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-  is_owner: boolean; // ★APIが返す
+  is_owner: boolean;
 };
 
 const fetcherWithToken = async (url: string) => {
@@ -41,8 +43,25 @@ const fetcherWithToken = async (url: string) => {
 export default function DiaryDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Next.jsのuseParamsは string | string[] になり得るので安全に取り出す
+  // ✅ 通常テキスト用（トーストじゃない）
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    const created = searchParams.get('created');
+    if (created === '1') {
+      setNotice('日記が登録できました。');
+
+      const t = setTimeout(() => setNotice(null), 2500);
+
+      // クエリを消して再読み込みでも出ないようにする
+      router.replace(window.location.pathname);
+
+      return () => clearTimeout(t);
+    }
+  }, [searchParams, router]);
+
   const idRaw = params?.id;
   const diaryId = Array.isArray(idRaw) ? idRaw[0] : idRaw;
 
@@ -65,9 +84,19 @@ export default function DiaryDetailPage() {
         <div className="p-10 text-center">読み込み中...</div>
       ) : (
         <div>
+          {/* ✅ ここが「通常テキスト表示」 */}
+          {notice && (
+            <p className="mb-4 rounded-lg bg-green-50 px-4 py-2 text-sm text-green-700">
+              {notice}
+            </p>
+          )}
+
           <div className="relative rounded-lg bg-white shadow-sm p-6 mb-10">
+            <p className="mb-3 w-fit rounded-full bg-[#D3D6C6] px-3 py-0.5 text-[12px]">
+              {diary.world_heritage_name ?? '世界遺産未設定'}
+            </p>
+
             <div className="mb-6 flex items-center gap-4 text-[12px] text-gray-500">
-              {/* 一覧に合わせて visit_day を表示（なければ未設定） */}
               <span>
                 {diary.created_at
                   ? new Date(diary.created_at).toLocaleDateString('ja-JP', {
@@ -78,9 +107,6 @@ export default function DiaryDetailPage() {
                   : '日付未設定'}
               </span>
               <span>{diary.user_nickname ?? '名無し'}</span>
-              <span className="rounded-full bg-[#D3D6C6] px-3 py-0.5">
-                {diary.world_heritage_name ?? '世界遺産未設定'}
-              </span>
             </div>
 
             <h1 className="mb-6 text-lg font-bold leading-relaxed">
@@ -108,17 +134,20 @@ export default function DiaryDetailPage() {
             </div>
 
             <div className="mb-2 text-[12px] font-bold text-gray-500">
-              訪問日：{diary.visit_day ?? '未設定'}
+              訪問日：
+              {diary.visit_day
+                ? new Date(diary.visit_day).toLocaleDateString('ja-JP', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })
+                : '日付未設定'}
             </div>
 
             <p className="mb-7 whitespace-pre-wrap text-xs leading-relaxed text-gray-700">
               {diary.text}
             </p>
 
-            {/* ★ボタン出し分け：
-                - 他人の日記: 表示のみ（編集/削除は出さない）
-                - 自分の日記: 編集/削除ボタンを表示（機能はまだ付けない）
-            */}
             <div className="flex justify-between gap-2">
               {diary.is_owner && (
                 <>
@@ -138,13 +167,13 @@ export default function DiaryDetailPage() {
               )}
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="w-full rounded-lg bg-[#6B7B4F] py-4 text-lg font-medium tracking-wider text-white shadow-sm transition-all active:scale-[0.97] hover:bg-[#5A6943]"
+
+          <Link
+            href="/diaries"
+            className="block text-center w-full rounded-lg bg-[#6B7B4F] py-4 text-lg font-medium tracking-wider text-white shadow-sm transition-all active:scale-[0.97] hover:bg-[#5A6943]"
           >
             一覧にもどる
-          </button>
+          </Link>
         </div>
       )}
     </AuthLoginCheck>

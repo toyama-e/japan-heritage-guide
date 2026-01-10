@@ -87,12 +87,12 @@ export default function DiaryListPage() {
               </button>
             </div>
 
-            <button
-              type="button"
+            <Link
+              href="/diaries/new"
               className="flex h-8 w-8 cursor-default items-center justify-center rounded-full bg-[#D3D6C6] text-lg text-gray-600 shadow-sm"
             >
               ＋
-            </button>
+            </Link>
           </div>
 
           {/* 一覧 */}
@@ -109,7 +109,7 @@ export default function DiaryListPage() {
                   className="mb-5 block transition-opacity active:opacity-70"
                 >
                   <div className="flex gap-4 rounded-xl bg-white p-4 shadow-sm">
-                    <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-inner">
+                    <div className="h-25 w-25 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-inner">
                       {diary.image_url ? (
                         <img
                           src={diary.image_url}
@@ -130,6 +130,9 @@ export default function DiaryListPage() {
                     </div>
 
                     <div className="flex flex-1 flex-col">
+                      <p className="w-fit mb-2 rounded-full bg-[#D3D6C6] px-3 py-0.5 text-[10px]">
+                        {diary.world_heritage_name ?? ''}
+                      </p>
                       <div className="mb-1 flex items-center gap-2 text-[10px] text-gray-600">
                         <span>
                           {diary.created_at
@@ -144,9 +147,6 @@ export default function DiaryListPage() {
                             : '日付未設定'}
                         </span>
                         <span>{diary.user_nickname ?? '名無し'}</span>
-                        <span className="rounded-full bg-[#D3D6C6] px-3 py-0.5 text-[10px]">
-                          {diary.world_heritage_name ?? ''}
-                        </span>
                       </div>
                       <h3 className="mb-2 my-0.5 text-xs font-bold text-gray-800">
                         {diary.title}
