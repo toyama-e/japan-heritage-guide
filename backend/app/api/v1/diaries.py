@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.firebase_dependency import get_current_user
 from app.models.user import User as DBUser
-from app.schemas.diary import DiaryListItem
-from app.crud.diary import get_list_item
+from app.schemas.diary import DiaryListItem, DiaryDetail   # ★追加
+from app.crud.diary import get_list_item, get_detail_item
 
 router = APIRouter()
 
@@ -27,3 +27,18 @@ def list_diaries(
         skip=skip,
         limit=limit,
     )
+
+@router.get("/diaries/{diary_id}", response_model=DiaryDetail, tags=["Diary"])
+def read_diary_detail(
+    diary_id: int,
+    current_user: DBUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    data = get_detail_item(db, diary_id)
+    if not data:
+        raise HTTPException(status_code=404, detail="Diary not found")
+
+    # ★本人判定（これでフロントはボタン出し分けできる）
+    data["is_owner"] = (data["user_id"] == current_user.id)
+
+    return data
