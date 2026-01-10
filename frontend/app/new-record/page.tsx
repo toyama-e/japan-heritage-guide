@@ -1,26 +1,55 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import { apiFetchResponse } from '../../lib/apiFetch';
+import Link from 'next/link';
 
 type HeritageOption = {
   id: number;
   name: string;
 };
 
+// 返却は VisitOut（最低限必要なものだけ型にしてOK）
+type VisitOut = {
+  id: number;
+  user_id: number;
+  world_heritage_id: number;
+  visited_from: string; // "YYYY-MM-DD"
+  visited_to: string; // "YYYY-MM-DD"
+};
+
+type FastApiError = {
+  detail?: unknown;
+};
+
+function isDateRangeValid(from: string, to: string) {
+  if (!from || !to) return false;
+  return from <= to; // yyyy-mm-dd なので文字列比較でOK
+}
+
+// ★ コンポーネント外（毎回再定義しない）
+function extractDetailMessage(detail: unknown): string | null {
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) return '入力内容に誤りがあります';
+  return null;
+}
+
+// ★ コンポーネント外
+async function safeReadJson<T>(res: Response): Promise<T | null> {
+  try {
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
 export default function NewRecordPage() {
-  // ダミー：後で GET /api/v1/heritages に置き換える
-  const heritages: HeritageOption[] = useMemo(
-    () => [
-      { id: 1, name: '法隆寺地域の仏教建造物' },
-      { id: 2, name: '姫路城' },
-      { id: 3, name: '屋久島' },
-      { id: 4, name: '白川郷・五箇山の合掌造り集落' },
-    ],
-    [],
-  );
+  const [heritages, setHeritages] = useState<HeritageOption[]>([]);
+  const [heritagesLoading, setHeritagesLoading] = useState(true);
+  const [heritagesError, setHeritagesError] = useState<string | null>(null);
 
   // select風プルダウン用
   const [isOpen, setIsOpen] = useState(false);
@@ -42,6 +71,10 @@ export default function NewRecordPage() {
   // 訪問登録が完了したか（登録ボタンを押して成功した扱いにできたか）
   const [isVisitSaved, setIsVisitSaved] = useState(false);
 
+  // 追加：通信状態/メッセージ
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
   // 何か入力（下書き）があるか：未保存の確認に使う
   const hasDraft =
     selectedHeritageId !== null || visitedFrom !== '' || visitedTo !== '';
@@ -49,11 +82,13 @@ export default function NewRecordPage() {
   const canSubmit =
     selectedHeritageId !== null &&
     visitedFrom.trim() !== '' &&
-    visitedTo.trim() !== '';
+    visitedTo.trim() !== '' &&
+    isDateRangeValid(visitedFrom, visitedTo);
 
   // 開始日を変えたら「保存済み」を解除＆終了日が矛盾したらリセット
   const handleChangeFrom = (value: string) => {
     setIsVisitSaved(false);
+    setMessage(null);
     setVisitedFrom(value);
 
     if (visitedTo && visitedTo < value) {
@@ -64,7 +99,129 @@ export default function NewRecordPage() {
   // 終了日を変えたら「保存済み」を解除
   const handleChangeTo = (value: string) => {
     setIsVisitSaved(false);
+    setMessage(null);
     setVisitedTo(value);
+  };
+
+  // GET /api/v1/heritages を読む
+  useEffect(() => {
+    const loadHeritages = async () => {
+      try {
+        setHeritagesLoading(true);
+        setHeritagesError(null);
+
+        const data = await apiFetchResponse('/api/v1/heritages');
+
+        if (!data.ok) {
+          setHeritagesError(`取得に失敗しました（${data.status}）`);
+          return;
+        }
+
+        const json = (await data.json()) as {
+          id: number;
+          name: string;
+        }[];
+
+        setHeritages(json);
+      } catch (e) {
+        setHeritagesError(
+          e instanceof Error ? e.message : '世界遺産の取得に失敗しました',
+        );
+      } finally {
+        setHeritagesLoading(false);
+      }
+    };
+
+    loadHeritages();
+  }, []);
+
+  /**
+   * saveVisit() 完成版
+   * - 201: 登録成功 → isVisitSaved=true / message表示
+   * - 409: 重複 → message表示（isVisitSavedはtrueにしない）
+   * - 401: 認証不足 → message表示
+   * - 422: バリデーション → message表示（detail配列）
+   * - その他: message表示
+   */
+  const saveVisit = async (): Promise<boolean> => {
+    if (selectedHeritageId === null) {
+      setMessage('世界遺産を選択してください');
+      return false;
+    }
+    if (!visitedFrom || !visitedTo) {
+      setMessage('訪問日（開始・終了）を入力してください');
+      return false;
+    }
+    if (visitedTo < visitedFrom) {
+      setMessage('終了日は開始日以降にしてください');
+      return false;
+    }
+
+    try {
+      setSubmitting(true);
+      setMessage(null);
+
+      const res = await apiFetchResponse('/api/v1/visits', {
+        method: 'POST',
+        body: {
+          world_heritage_id: selectedHeritageId,
+          visited_from: visitedFrom,
+          visited_to: visitedTo,
+        },
+      });
+
+      // ✅ 成功
+      if (res.status === 201) {
+        await safeReadJson<VisitOut>(res);
+        setIsVisitSaved(true);
+        setMessage('訪問登録しました');
+        return true;
+      }
+
+      // 🚫 重複
+      if (res.status === 409) {
+        const err = await safeReadJson<FastApiError>(res);
+        setIsVisitSaved(false);
+        setMessage(
+          extractDetailMessage(err?.detail) ?? 'すでに訪問登録されています',
+        );
+        return false;
+      }
+
+      // 🚫 認証不足
+      if (res.status === 401) {
+        const err = await safeReadJson<FastApiError>(res);
+        setIsVisitSaved(false);
+        setMessage(extractDetailMessage(err?.detail) ?? 'ログインが必要です');
+        return false;
+      }
+
+      // 🚫 バリデーション
+      if (res.status === 422) {
+        const err = await safeReadJson<FastApiError>(res);
+        setIsVisitSaved(false);
+        setMessage(
+          extractDetailMessage(err?.detail) ?? '入力内容に誤りがあります',
+        );
+        return false;
+      }
+
+      // 🚫 その他
+      const fallbackText = await res.text().catch(() => '');
+      setIsVisitSaved(false);
+      setMessage(
+        fallbackText
+          ? `訪問登録に失敗しました（${res.status}）: ${fallbackText}`
+          : `訪問登録に失敗しました（${res.status}）`,
+      );
+      return false;
+    } catch (e) {
+      setIsVisitSaved(false);
+      setMessage(e instanceof Error ? e.message : '訪問登録に失敗しました');
+      return false;
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -74,6 +231,9 @@ export default function NewRecordPage() {
         <p className="mt-2 text-sm text-gray-500">
           訪問した世界遺産と日付を登録します
         </p>
+        <p className="mt-2 text-sm text-gray-500">
+          訪問を登録するとバッジが解放されます
+        </p>
       </header>
 
       <Card>
@@ -81,13 +241,11 @@ export default function NewRecordPage() {
         <div className="relative">
           <p className="text-sm font-medium">世界遺産</p>
 
-          {/* クリックできる要素は button に寄せる（読みやすい） */}
           <button
             type="button"
             className="mt-2 w-full text-left"
             onClick={() => setIsOpen((v) => !v)}
           >
-            {/* Input自体は「表示専用」なので onChange は空でOK */}
             <Input
               value={selectedHeritageName}
               onChange={() => {}}
@@ -95,7 +253,16 @@ export default function NewRecordPage() {
             />
           </button>
 
-          {/* プルダウン */}
+          {heritagesLoading && (
+            <p className="mt-2 text-xs text-gray-500">
+              世界遺産を読み込み中...
+            </p>
+          )}
+
+          {heritagesError && (
+            <p className="mt-2 text-xs text-red-500">{heritagesError}</p>
+          )}
+
           {isOpen && (
             <div className="absolute z-10 mt-2 max-h-48 w-full overflow-y-auto rounded-md border border-gray-300 bg-white shadow">
               {heritages.map((h) => (
@@ -110,10 +277,11 @@ export default function NewRecordPage() {
                   onClick={() => {
                     setSelectedHeritageId(h.id);
                     setIsVisitSaved(false);
+                    setMessage(null);
                     setIsOpen(false);
                   }}
                 >
-                  {h.name}
+                  {h.id}: {h.name}
                 </button>
               ))}
             </div>
@@ -136,7 +304,6 @@ export default function NewRecordPage() {
 
             <div>
               <p className="mb-1 text-xs text-gray-500">終了</p>
-              {/* 終了日は開始日以降だけ選べる */}
               <Input
                 type="date"
                 min={visitedFrom}
@@ -145,79 +312,81 @@ export default function NewRecordPage() {
               />
             </div>
           </div>
+
+          {!isDateRangeValid(visitedFrom, visitedTo) &&
+            visitedFrom &&
+            visitedTo && (
+              <p className="mt-2 text-xs text-red-500">
+                終了日は開始日以降にしてください
+              </p>
+            )}
         </div>
+
+        {/* メッセージ */}
+        {message && <p className="mt-4 text-sm text-gray-600">{message}</p>}
 
         {/* 登録ボタン */}
         <div className="mt-6">
           <Button
-            disabled={!canSubmit}
-            onClick={() => {
-              alert(
-                `登録（UI確認）\nheritageId=${selectedHeritageId}\nfrom=${visitedFrom}\nto=${visitedTo}`,
-              );
-              // 今はUI確認なので「登録できた扱い」にする
-              setIsVisitSaved(true);
+            disabled={!canSubmit || submitting}
+            onClick={async () => {
+              await saveVisit();
             }}
           >
-            訪問登録
+            {submitting ? '送信中...' : '訪問登録'}
           </Button>
 
+          {/* 日記導線 */}
           <div className="mt-3">
-            <Button
-              onClick={() => {
-                // 1) すでに保存済みなら、そのまま日記へ
-                if (isVisitSaved) {
-                  alert('日記作成へ（UI確認）');
-                  return;
-                }
-
-                // 2) 未入力なら、そのまま日記へ
-                if (!hasDraft) {
-                  alert('日記作成へ（UI確認）');
-                  return;
-                }
-
-                // 3) 未保存の入力がある → まず「訪問登録する？」を聞く
-                const doSave = window.confirm(
-                  '訪問登録がまだ完了していません。\n訪問登録してから日記を作成しますか？',
-                );
-
-                if (doSave) {
-                  // 入力が揃っていないと登録できない
-                  if (!canSubmit) {
-                    alert('訪問登録に必要な情報が足りません（世界遺産/日付）');
+            <Link href="/diaries" className="w-full max-w-sm">
+              <Button
+                disabled={submitting}
+                onClick={async () => {
+                  if (isVisitSaved) {
+                    alert('日記作成へ');
                     return;
                   }
 
-                  // 本来はここで POST /api/v1/visits を実行 → 成功したら saved
-                  alert('（UI確認）訪問登録します');
-                  setIsVisitSaved(true);
+                  if (!hasDraft) {
+                    alert('日記作成へ');
+                    return;
+                  }
 
-                  alert('日記作成へ（UI確認）');
-                  return;
-                }
+                  const doSave = window.confirm(
+                    '訪問登録がまだ完了していません。\n訪問登録してから日記を作成しますか？',
+                  );
 
-                // 4) 保存しない → 破棄するか聞く
-                const discard = window.confirm(
-                  '入力内容を破棄して日記作成に進みますか？',
-                );
+                  if (doSave) {
+                    const ok = await saveVisit();
+                    if (!ok) return;
+                    alert('日記作成へ（遷移に置き換え）');
+                    return;
+                  }
 
-                if (discard) {
-                  // 入力を初期化（破棄）
-                  setSelectedHeritageId(null);
-                  setVisitedFrom('');
-                  setVisitedTo('');
-                  setIsVisitSaved(false);
+                  const discard = window.confirm(
+                    '入力内容を破棄して日記作成に進みますか？',
+                  );
 
-                  alert('日記作成へ（UI確認）');
-                  return;
-                }
+                  if (discard) {
+                    setSelectedHeritageId(null);
+                    setVisitedFrom('');
+                    setVisitedTo('');
+                    setIsVisitSaved(false);
+                    setMessage(null);
+                    alert('日記作成へ');
+                  }
+                }}
+              >
+                日記を作成する
+              </Button>
+            </Link>
+          </div>
 
-                // 5) 破棄もしない（キャンセル）
-              }}
-            >
-              日記を作成する
-            </Button>
+          {/* 獲得バッジ導線 */}
+          <div className="mt-3">
+            <Link href="/get-badges" className="w-full max-w-sm">
+              <Button className="w-full">獲得したバッジを見る</Button>
+            </Link>
           </div>
         </div>
       </Card>
