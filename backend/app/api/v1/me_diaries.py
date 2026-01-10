@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.diary import Diary
-from app.models.user import User
 from app.models.heritage import WorldHeritage
 from app.core.firebase_dependency import get_current_user
 from app.schemas.diary import DiaryListItem
 from typing import List
+from sqlalchemy import literal
 
 router = APIRouter()
 
@@ -18,12 +18,7 @@ def read_my_diaries(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    カレントユーザーの訪問日記を取得
-    WorldHeritage.name と user.nickname を JOIN して返す
-    """
 
-    # JOINして world_heritage_name と user_nickname を取得
     diaries = (
         db.query(
             Diary.id,
@@ -34,10 +29,9 @@ def read_my_diaries(
             Diary.text,
             Diary.image_url,
             WorldHeritage.name.label("world_heritage_name"),
-            User.nickname.label("user_nickname"),  # <- 追加
+            literal(current_user.nickname).label("user_nickname")   #スキーマと合わせる為
         )
         .join(WorldHeritage, Diary.world_heritage_id == WorldHeritage.id)
-        .join(User, Diary.user_id == User.id)  # <- ユーザーテーブルとJOIN
         .filter(Diary.user_id == current_user.id)
         .order_by(Diary.visit_day.desc())
         .all()
