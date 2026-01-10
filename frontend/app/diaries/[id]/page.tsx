@@ -1,136 +1,148 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
+import useSWR from 'swr';
+import Image from 'next/image';
+import { getIdToken } from '../../../lib/auth/getidtoken';
+import { AuthLoginCheck } from '../../../components/auth/authLoginCheck';
 
-const allDiaries = [
-  {
-    id: 1,
-    date: '2026年5月28日',
-    user: 'ひろ',
-    location: '弥山（宮島）',
-    title: 'ハイキングにもってこい',
-    content:
-      '初挑戦の弥山登山。紅葉谷駅までロープウェーで行き、そこから山頂へはなかなか登りがいのある50分の登山コースでした。程よい汗をかいた後に山頂から眺める瀬戸内海は最高です！',
-    image:
-      'https://upload.wikimedia.org/wikipedia/commons/0/0e/Itsukushima_Gate.jpg',
-    visitDate: '2026年5月28日',
-  },
-  {
-    id: 2,
-    date: '2025年8月20日',
-    user: 'aya',
-    location: '厳島神社',
-    title: '歴史ロマン',
-    content:
-      '荘厳ながら優美な社殿！当時の平家の繁栄ぶりが感じられました。夏は緑と赤い社殿のコントラストが美しいけれど、紅葉の季節にも訪れてみたいなあ。',
-    image:
-      'https://upload.wikimedia.org/wikipedia/commons/6/66/%E5%B9%B3%E6%B8%85%E7%9B%9B%E5%83%8F%EF%BC%88%E5%8E%B3%E5%B3%B6%E7%A5%9E%E7%A4%BE%EF%BC%89.jpg',
-    visitDate: '2025年8月15日',
-  },
-  {
-    id: 3,
-    date: '2025年11月5日',
-    user: 'えりぴ',
-    location: '宮島 商店街',
-    title: 'お土産もたくさん',
-    content:
-      '有名な杓子のほかにも、宮島土鈴や張り子などならではのお土産もたくさんありました。島内には野生の鹿がいたるところに。奈良の鹿と違って少し気性が荒め？',
-    image:
-      'https://upload.wikimedia.org/wikipedia/commons/e/e8/Itsukushima2001-02.JPG',
-    visitDate: '2025年11月3日',
-  },
-  {
-    id: 4,
-    date: '2025年11月10日',
-    user: 'かみむー',
-    location: '紅葉谷公園',
-    title: 'そろそろ紅葉がピーク',
-    text: '私が行った頃には、ちょうど色づきが進んで見頃の直前でした。今はきっとピークを迎えているはず！宮島の紅葉谷は歩いているだけで心が洗われるような美しさです。ぜひカメラを片手に散策に訪れてみてください。',
-    image:
-      'https://upload.wikimedia.org/wikipedia/commons/e/e0/%E5%AE%AE%E5%B3%B6%E7%B4%85%E8%91%89%E8%B0%B7_-_panoramio.jpg',
-    visitDate: '2025年11月10日',
-  },
-  {
-    id: 5,
-    date: '2025年11月29日',
-    user: 'ごま',
-    location: '宮島一周',
-    title: '島中真っ赤でした',
-    content:
-      '紅葉に誘われて島を一周。有名なスポットも良いですが、少し奥へ歩くと自分だけの絶景が見つかります。色づいた木々の隙間から見える瀬戸内海の青さが最高でした。歩きやすい靴で、ぜひ隅々まで歩いてみてほしいです！',
-    image:
-      'https://upload.wikimedia.org/wikipedia/commons/6/60/Autumn_colours_on_Miyajima_Island_Japan.jpg',
-    visitDate: '2025年11月25日',
-  },
-];
+type DiaryDetail = {
+  id: number;
+  user_id: number;
+  user_nickname: string | null;
+  world_heritage_id: number;
+  world_heritage_name: string | null;
+  visit_id: number | null;
+  visit_day: string | null;
+  title: string;
+  text: string;
+  image_url: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  is_owner: boolean; // ★APIが返す
+};
+
+const fetcherWithToken = async (url: string) => {
+  const token = await getIdToken();
+  if (!token) throw new Error('Not authenticated');
+
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Fetch failed: ${res.status} ${res.statusText}\n${body}`);
+  }
+  return res.json() as Promise<DiaryDetail>;
+};
 
 export default function DiaryDetailPage() {
   const params = useParams();
   const router = useRouter();
 
-  // URLのID（文字列）を数値に変換して、該当するデータを検索
-  const diary = allDiaries.find((d) => d.id === Number(params.id));
+  // Next.jsのuseParamsは string | string[] になり得るので安全に取り出す
+  const idRaw = params?.id;
+  const diaryId = Array.isArray(idRaw) ? idRaw[0] : idRaw;
 
-  if (!diary) {
-    return <div className="p-10 text-center">日記が見つかりませんでした。</div>;
-  }
+  const {
+    data: diary,
+    error,
+    isLoading,
+  } = useSWR<DiaryDetail>(
+    diaryId
+      ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/diaries/${diaryId}`
+      : null,
+    fetcherWithToken,
+  );
 
   return (
-    <div className="bg-white shadow-sm rounded-lg relative">
-      <div className="px-6 pt-4 pb-10">
-        <div className="text-[10px] text-gray-500 flex gap-4 mb-2">
-          <span>{diary.date}</span>
-          <span>{diary.user}</span>
+    <AuthLoginCheck>
+      {error ? (
+        <div className="p-10 text-center">日記の取得に失敗しました。</div>
+      ) : isLoading || !diary ? (
+        <div className="p-10 text-center">読み込み中...</div>
+      ) : (
+        <div className="relative rounded-lg bg-white shadow-sm">
+          <div className="px-6 pb-10 pt-4">
+            <div className="mb-2 flex gap-4 text-[10px] text-gray-500">
+              {/* 一覧に合わせて visit_day を表示（なければ未設定） */}
+              <span>{diary.visit_day ?? '日付未設定'}</span>
+              <span>{diary.user_nickname ?? '名無し'}</span>
+            </div>
+
+            <div className="mb-4">
+              <span className="rounded-full bg-gray-200 px-3 py-1 text-[10px] text-gray-700">
+                {diary.world_heritage_name ?? '世界遺産未設定'}
+              </span>
+            </div>
+
+            <h1 className="mb-6 text-sm font-bold leading-relaxed">
+              {diary.title}
+            </h1>
+
+            <div className="mb-6 w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100 aspect-video">
+              {diary.image_url ? (
+                <img
+                  src={diary.image_url}
+                  alt={diary.title}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center">
+                  <Image
+                    src="/images/header-image.png"
+                    alt="日記画像"
+                    width={180}
+                    height={120}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="mb-2 text-[10px] text-gray-500">
+              訪問日{diary.visit_day ?? '未設定'}
+            </div>
+
+            <p className="mb-10 whitespace-pre-wrap text-xs leading-relaxed text-gray-700">
+              {diary.text}
+            </p>
+
+            {/* ★ボタン出し分け：
+                - 他人の日記: 表示のみ（編集/削除は出さない）
+                - 自分の日記: 編集/削除ボタンを表示（機能はまだ付けない）
+            */}
+            <div className="mb-10 flex justify-between gap-2">
+              {diary.is_owner && (
+                <>
+                  <button
+                    type="button"
+                    className="flex-1 rounded-full bg-gray-100 py-2 text-xs font-bold text-gray-600 active:bg-gray-200"
+                  >
+                    編集
+                  </button>
+                  <button
+                    type="button"
+                    className="flex-1 rounded-full bg-gray-100 py-2 text-xs font-bold text-gray-600 active:bg-gray-200"
+                  >
+                    削除
+                  </button>
+                </>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="w-full rounded-lg bg-[#6B7B4F] py-4 text-lg font-medium tracking-wider text-white shadow-sm transition-all active:scale-[0.97] hover:bg-[#5A6943]"
+            >
+              一覧にもどる
+            </button>
+          </div>
         </div>
-
-        <div className="mb-4">
-          <span className="bg-gray-200 text-gray-700 text-[10px] px-3 py-1 rounded-full">
-            {diary.location}
-          </span>
-        </div>
-
-        <h1 className="text-sm font-bold leading-relaxed mb-6">
-          {diary.title}
-        </h1>
-
-        <div className="w-full aspect-video bg-gray-100 rounded-lg overflow-hidden mb-6 border border-gray-200">
-          {diary.image && (
-            <img
-              src={diary.image}
-              alt={diary.title}
-              className="w-full h-full object-cover"
-            />
-          )}
-        </div>
-
-        <div className="text-[10px] text-gray-500 mb-2">
-          訪問日　{diary.visitDate}
-        </div>
-
-        <p className="text-xs text-gray-700 leading-relaxed mb-10 whitespace-pre-wrap">
-          {/* contentが無い場合はtextを表示する */}
-          {diary.content || (diary as any).text}
-        </p>
-
-        <div className="flex justify-between gap-2 mb-10">
-          <button className="flex-1 bg-gray-100 py-2 rounded-full text-xs text-gray-600 font-bold active:bg-gray-200">
-            編集
-          </button>
-          <button className="flex-1 bg-gray-100 py-2 rounded-full text-xs text-gray-600 font-bold active:bg-gray-200">
-            削除
-          </button>
-          <button className="flex-1 bg-gray-100 py-2 rounded-full text-xs text-gray-600 font-bold active:bg-gray-200">
-            登録
-          </button>
-        </div>
-
-        <button
-          onClick={() => router.back()}
-          className="w-full bg-[#6B7B4F] hover:bg-[#5A6943] text-white py-4 rounded-lg shadow-sm transition-all active:scale-[0.97] text-lg font-medium tracking-wider"
-        >
-          一覧にもどる
-        </button>
-      </div>
-    </div>
+      )}
+    </AuthLoginCheck>
   );
 }
