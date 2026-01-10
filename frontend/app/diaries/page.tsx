@@ -109,7 +109,7 @@ export default function DiaryListPage() {
                   className="mb-5 block transition-opacity active:opacity-70"
                 >
                   <div className="flex gap-4 rounded-xl bg-white p-4 shadow-sm">
-                    <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-inner">
+                    <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-inner">
                       {diary.image_url ? (
                         <img
                           src={diary.image_url}
@@ -130,12 +130,25 @@ export default function DiaryListPage() {
                     </div>
 
                     <div className="flex flex-1 flex-col">
-                      <div className="flex gap-2 text-[10px] text-gray-600">
-                        <span>{diary.visit_day ?? '日付未設定'}</span>
+                      <div className="mb-1 flex items-center gap-2 text-[10px] text-gray-600">
+                        <span>
+                          {diary.created_at
+                            ? new Date(diary.created_at).toLocaleDateString(
+                                'ja-JP',
+                                {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                },
+                              )
+                            : '日付未設定'}
+                        </span>
                         <span>{diary.user_nickname ?? '名無し'}</span>
-                        <span>{diary.world_heritage_name ?? ''}</span>
+                        <span className="rounded-full bg-[#D3D6C6] px-3 py-0.5 text-[10px]">
+                          {diary.world_heritage_name ?? ''}
+                        </span>
                       </div>
-                      <h3 className="my-0.5 text-xs font-bold text-gray-800">
+                      <h3 className="mb-2 my-0.5 text-xs font-bold text-gray-800">
                         {diary.title}
                       </h3>
                       <p className="line-clamp-2 text-[10px] leading-tight text-gray-600">

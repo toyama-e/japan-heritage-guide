@@ -64,21 +64,26 @@ export default function DiaryDetailPage() {
       ) : isLoading || !diary ? (
         <div className="p-10 text-center">読み込み中...</div>
       ) : (
-        <div className="relative rounded-lg bg-white shadow-sm">
-          <div className="px-6 pb-10 pt-4">
-            <div className="mb-2 flex gap-4 text-[10px] text-gray-500">
+        <div>
+          <div className="relative rounded-lg bg-white shadow-sm p-6 mb-10">
+            <div className="mb-6 flex items-center gap-4 text-[12px] text-gray-500">
               {/* 一覧に合わせて visit_day を表示（なければ未設定） */}
-              <span>{diary.visit_day ?? '日付未設定'}</span>
+              <span>
+                {diary.created_at
+                  ? new Date(diary.created_at).toLocaleDateString('ja-JP', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })
+                  : '日付未設定'}
+              </span>
               <span>{diary.user_nickname ?? '名無し'}</span>
-            </div>
-
-            <div className="mb-4">
-              <span className="rounded-full bg-gray-200 px-3 py-1 text-[10px] text-gray-700">
+              <span className="rounded-full bg-[#D3D6C6] px-3 py-0.5">
                 {diary.world_heritage_name ?? '世界遺産未設定'}
               </span>
             </div>
 
-            <h1 className="mb-6 text-sm font-bold leading-relaxed">
+            <h1 className="mb-6 text-lg font-bold leading-relaxed">
               {diary.title}
             </h1>
 
@@ -102,11 +107,11 @@ export default function DiaryDetailPage() {
               )}
             </div>
 
-            <div className="mb-2 text-[10px] text-gray-500">
-              訪問日{diary.visit_day ?? '未設定'}
+            <div className="mb-2 text-[12px] font-bold text-gray-500">
+              訪問日：{diary.visit_day ?? '未設定'}
             </div>
 
-            <p className="mb-10 whitespace-pre-wrap text-xs leading-relaxed text-gray-700">
+            <p className="mb-7 whitespace-pre-wrap text-xs leading-relaxed text-gray-700">
               {diary.text}
             </p>
 
@@ -114,7 +119,7 @@ export default function DiaryDetailPage() {
                 - 他人の日記: 表示のみ（編集/削除は出さない）
                 - 自分の日記: 編集/削除ボタンを表示（機能はまだ付けない）
             */}
-            <div className="mb-10 flex justify-between gap-2">
+            <div className="flex justify-between gap-2">
               {diary.is_owner && (
                 <>
                   <button
@@ -132,15 +137,14 @@ export default function DiaryDetailPage() {
                 </>
               )}
             </div>
-
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="w-full rounded-lg bg-[#6B7B4F] py-4 text-lg font-medium tracking-wider text-white shadow-sm transition-all active:scale-[0.97] hover:bg-[#5A6943]"
-            >
-              一覧にもどる
-            </button>
           </div>
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="w-full rounded-lg bg-[#6B7B4F] py-4 text-lg font-medium tracking-wider text-white shadow-sm transition-all active:scale-[0.97] hover:bg-[#5A6943]"
+          >
+            一覧にもどる
+          </button>
         </div>
       )}
     </AuthLoginCheck>
