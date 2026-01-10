@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.firebase_dependency import get_current_user
 from app.models.user import User as DBUser
-from app.schemas.diary import DiaryListItem, DiaryDetail   # ★追加
-from app.crud.diary import get_list_item, get_detail_item
+from app.schemas.diary import DiaryListItem, DiaryDetail, DiaryCreate
+from app.crud.diary import get_list_item, get_detail_item, create_diary
 
 router = APIRouter()
 
@@ -41,4 +41,27 @@ def read_diary_detail(
     # ★本人判定（これでフロントはボタン出し分けできる）
     data["is_owner"] = (data["user_id"] == current_user.id)
 
+    return data
+
+@router.post(
+    "/diaries",
+    response_model=DiaryDetail,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Diary"],
+)
+def create_diary_api(
+    payload: DiaryCreate,
+    current_user: DBUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    # 1) 作成
+    created = create_diary(db, user_id=current_user.id, payload=payload)
+
+    # 2) 返却用に JOIN で取り直す（nickname/遺産名を付けるため）
+    data = get_detail_item(db, created.id)
+    if not data:
+        # 通常ここには来ないが、安全のため
+        raise HTTPException(status_code=500, detail="Failed to load created diary")
+
+    data["is_owner"] = True  # 作成者本人なので常に true
     return data

@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from app.models.diary import Diary
 from app.models.user import User
 from app.models.heritage import WorldHeritage
+from app.schemas.diary import DiaryCreate
 
 def get_list_item(
     db: Session,
@@ -65,3 +66,10 @@ def get_detail_item(db: Session, diary_id: int):
         .first()
     )
     return dict(row._mapping) if row else None
+
+def create_diary(db: Session, user_id: int, payload: DiaryCreate) -> Diary:
+    diary = Diary(user_id=user_id, **payload.model_dump())
+    db.add(diary)
+    db.commit()
+    db.refresh(diary)
+    return diary

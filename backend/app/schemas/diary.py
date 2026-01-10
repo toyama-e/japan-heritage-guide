@@ -8,8 +8,6 @@ class DiaryBase(BaseModel):
     title: str
     text: str
     image_url: str | None = None
-
-# 一覧用（★これを追加）
 class DiaryListItem(BaseModel):
     id: int
     user_id: int
@@ -53,3 +51,5 @@ class DiaryDetail(BaseModel):
     is_owner: bool
 
     model_config = ConfigDict(from_attributes=True)
+class DiaryCreate(DiaryBase):
+    pass
