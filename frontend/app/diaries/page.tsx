@@ -21,7 +21,30 @@ type DiaryData = {
   deleted_at: string | null;
   user_nickname: string | null;
   world_heritage_name: string | null;
+  like_count: number;
 };
+
+type LikeResponse = { diary_id: number; like_count: number };
+
+async function postLike(diaryId: number): Promise<LikeResponse> {
+  const token = await getIdToken();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+
+  const res = await fetch(`${apiUrl}/api/v1/diaries/${diaryId}/like`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Failed to like: ${res.status}\n${body}`);
+  }
+
+  return res.json();
+}
 
 const fetcherWithToken = async (url: string) => {
   const token = await getIdToken();
@@ -48,6 +71,7 @@ export default function DiaryListPage() {
     data: list,
     error,
     isLoading,
+    mutate,
   } = useSWR<DiaryData[]>(
     `${process.env.NEXT_PUBLIC_API_URL}/api/v1/diaries?scope=${scope}`,
     fetcherWithToken,
@@ -140,60 +164,113 @@ export default function DiaryListPage() {
               </div>
             ) : (
               filtered.map((diary) => (
-                <Link
-                  href={`/diaries/${diary.id}`}
-                  key={diary.id}
-                  className="mb-5 block transition-opacity active:opacity-70"
-                >
+                <div key={diary.id} className="relative mb-5">
                   <div className="flex gap-4 rounded-xl bg-white p-4 shadow-sm">
-                    <div className="h-25 w-25 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-inner">
-                      {diary.image_url ? (
-                        <img
-                          src={diary.image_url}
-                          alt={diary.title}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center">
-                          <Image
-                            src="/images/header-image.png"
-                            alt="日記画像"
-                            width={80}
-                            height={80}
+                    {/* ✅ ここだけLinkにする（ボタンはLink外） */}
+                    <Link
+                      href={`/diaries/${diary.id}`}
+                      className="flex flex-1 gap-4 transition-opacity active:opacity-70"
+                    >
+                      <div className="h-25 w-25 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-inner">
+                        {diary.image_url ? (
+                          <img
+                            src={diary.image_url}
+                            alt={diary.title}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
                           />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-1 flex-col">
-                      <p className="mb-2 w-fit rounded-full bg-[#D3D6C6] px-3 py-0.5 text-[10px]">
-                        {diary.world_heritage_name ?? ''}
-                      </p>
-                      <div className="mb-1 flex items-center gap-2 text-[10px] text-gray-600">
-                        <span>
-                          {diary.created_at
-                            ? new Date(diary.created_at).toLocaleDateString(
-                                'ja-JP',
-                                {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                                },
-                              )
-                            : '日付未設定'}
-                        </span>
-                        <span>{diary.user_nickname ?? '名無し'}</span>
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <Image
+                              src="/images/header-image.png"
+                              alt="日記画像"
+                              width={80}
+                              height={80}
+                            />
+                          </div>
+                        )}
                       </div>
-                      <h3 className="mb-2 my-0.5 text-xs font-bold text-gray-800">
-                        {diary.title}
-                      </h3>
-                      <p className="line-clamp-2 text-[10px] leading-tight text-gray-600">
-                        {diary.text}
-                      </p>
+
+                      <div className="flex flex-1 flex-col">
+                        <p className="mb-2 w-fit rounded-full bg-[#D3D6C6] px-3 py-0.5 text-[10px]">
+                          {diary.world_heritage_name ?? ''}
+                        </p>
+                        <div className="mb-1 flex items-center gap-2 text-[10px] text-gray-600">
+                          <span>
+                            {diary.created_at
+                              ? new Date(diary.created_at).toLocaleDateString(
+                                  'ja-JP',
+                                  {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                  },
+                                )
+                              : '日付未設定'}
+                          </span>
+                          <span>{diary.user_nickname ?? '名無し'}</span>
+                        </div>
+                        <h3 className="my-0.5 mb-2 text-xs font-bold text-gray-800">
+                          {diary.title}
+                        </h3>
+                        <p className="line-clamp-2 text-[10px] leading-tight text-gray-600">
+                          {diary.text}
+                        </p>
+                      </div>
+                    </Link>
+
+                    {/* ✅ いいねボタン（Link外なので押しても遷移しない） */}
+                    <div className="absolute right-4 top-3 flex flex-col items-end justify-end">
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 rounded-full text-[11px] active:scale-95"
+                        aria-label="いいね"
+                        onClick={async () => {
+                          // オプティミスティックに一覧の該当アイテムだけ +1
+                          const prev = list;
+                          if (!prev) return;
+
+                          await mutate(
+                            prev.map((d) =>
+                              d.id === diary.id
+                                ? { ...d, like_count: (d.like_count ?? 0) + 1 }
+                                : d,
+                            ),
+                            false,
+                          );
+
+                          try {
+                            const res = await postLike(diary.id);
+                            await mutate(
+                              (cur) =>
+                                (cur ?? []).map((d) =>
+                                  d.id === diary.id
+                                    ? { ...d, like_count: res.like_count }
+                                    : d,
+                                ),
+                              false,
+                            );
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                          } catch (error) {
+                            // 失敗したら元に戻す
+                            await mutate(prev, false);
+                            alert('いいねに失敗しました');
+                          }
+                        }}
+                      >
+                        <Image
+                          src="/icons/good-before_icon.png"
+                          alt="いいね"
+                          width={25}
+                          height={25}
+                        />
+                        <span className="tabular-nums">
+                          {diary.like_count ?? 0}
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </Link>
+                </div>
               ))
             )}
           </div>
