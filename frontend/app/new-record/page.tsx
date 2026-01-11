@@ -71,7 +71,7 @@ export default function NewRecordPage() {
   // 訪問登録が完了したか（登録ボタンを押して成功した扱いにできたか）
   const [isVisitSaved, setIsVisitSaved] = useState(false);
 
-  // 追加：通信状態/メッセージ
+  // 通信状態/メッセージ
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -135,14 +135,6 @@ export default function NewRecordPage() {
     loadHeritages();
   }, []);
 
-  /**
-   * saveVisit() 完成版
-   * - 201: 登録成功 → isVisitSaved=true / message表示
-   * - 409: 重複 → message表示（isVisitSavedはtrueにしない）
-   * - 401: 認証不足 → message表示
-   * - 422: バリデーション → message表示（detail配列）
-   * - その他: message表示
-   */
   const saveVisit = async (): Promise<boolean> => {
     if (selectedHeritageId === null) {
       setMessage('世界遺産を選択してください');
