@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import update, select
 from app.models.diary import Diary
 from app.models.user import User
 from app.models.heritage import WorldHeritage
@@ -81,3 +82,22 @@ def get_by_id(db: Session, diary_id: int) -> Diary | None:
 def delete(db: Session, diary: Diary) -> None:
     db.delete(diary)
     db.commit()
+
+def increment_like_count(db: Session, diary_id: int) -> int | None:
+    """
+    like_count をDB側で +1 して、更新後の like_count を返す。
+    該当日記がなければ None
+    """
+    stmt = (
+        update(Diary)
+        .where(Diary.id == diary_id, Diary.deleted_at.is_(None))
+        .values(like_count=Diary.like_count + 1)
+        .returning(Diary.like_count)
+    )
+    result = db.execute(stmt).scalar_one_or_none()
+    if result is None:
+        db.rollback()
+        return None
+
+    db.commit()
+    return int(result)

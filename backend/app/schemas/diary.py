@@ -35,6 +35,7 @@ class DiaryListItem2(BaseModel):
     title: str
     text: str
     image_url: str | None
+    like_count: int
 
     created_at: datetime
     updated_at: datetime
@@ -56,6 +57,7 @@ class DiaryDetail(BaseModel):
     title: str
     text: str
     image_url: str | None
+    like_count: int
 
     created_at: datetime
     updated_at: datetime
@@ -70,3 +72,7 @@ class DiaryCreate(DiaryBase):
 
 class DiaryDeleteResponse(BaseModel):
     message: str = "deleted"
+
+class DiaryLikeOut(BaseModel):
+    diary_id: int
+    like_count: int

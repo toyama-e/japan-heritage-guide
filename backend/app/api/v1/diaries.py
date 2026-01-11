@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.firebase_dependency import get_current_user
 from app.models.user import User as DBUser
-from app.schemas.diary import DiaryListItem2, DiaryDetail, DiaryCreate,DiaryDeleteResponse
-from app.crud.diary import get_list_item, get_detail_item, create_diary,get_by_id, delete
+from app.schemas.diary import DiaryListItem2, DiaryDetail, DiaryCreate,DiaryDeleteResponse, DiaryLikeOut
+from app.crud.diary import get_list_item, get_detail_item, create_diary,get_by_id, delete, increment_like_count
 
 router = APIRouter()
 
@@ -80,3 +80,10 @@ def delete_diary(
         raise HTTPException(status_code=403, detail="Forbidden")
 
     delete(db, diary)
+
+@router.post("/diaries/{diary_id}/like", response_model=DiaryLikeOut)
+def like_diary(diary_id: int, db: Session = Depends(get_db)):
+    new_count = increment_like_count(db, diary_id)
+    if new_count is None:
+        raise HTTPException(status_code=404, detail="Diary not found")
+    return {"diary_id": diary_id, "like_count": new_count}
