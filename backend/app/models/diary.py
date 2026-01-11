@@ -35,6 +35,7 @@ class Diary(Base):
     title = Column(String, nullable=False)
     text = Column(Text, nullable=False)
     image_url = Column(String, nullable=True)
+    like_count = Column(Integer, nullable=False, server_default="0")
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
