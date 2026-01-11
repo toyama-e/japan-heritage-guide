@@ -23,6 +23,12 @@ type DiaryDetail = {
   updated_at: string;
   deleted_at: string | null;
   is_owner: boolean;
+  like_count: number;
+};
+
+type LikeResponse = {
+  diary_id: number;
+  like_count: number;
 };
 
 const fetcherWithToken = async (url: string) => {
@@ -40,12 +46,31 @@ const fetcherWithToken = async (url: string) => {
   return res.json() as Promise<DiaryDetail>;
 };
 
+async function postLike(diaryId: number): Promise<LikeResponse> {
+  const token = await getIdToken();
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const res = await fetch(`${apiUrl}/api/v1/diaries/${diaryId}/like`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Failed to like: ${res.status}\n${body}`);
+  }
+
+  return res.json();
+}
+
 export default function DiaryDetailPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // ✅ 通常テキスト用（トーストじゃない）
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,8 +79,6 @@ export default function DiaryDetailPage() {
       setNotice('日記が登録できました。');
 
       const t = setTimeout(() => setNotice(null), 2500);
-
-      // クエリを消して再読み込みでも出ないようにする
       router.replace(window.location.pathname);
 
       return () => clearTimeout(t);
@@ -65,17 +88,46 @@ export default function DiaryDetailPage() {
   const idRaw = params?.id;
   const diaryId = Array.isArray(idRaw) ? idRaw[0] : idRaw;
 
+  const swrKey = diaryId
+    ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/diaries/${diaryId}`
+    : null;
+
   const {
     data: diary,
     error,
     isLoading,
-  } = useSWR<DiaryDetail>(
-    diaryId
-      ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/diaries/${diaryId}`
-      : null,
-    fetcherWithToken,
-  );
+    mutate,
+  } = useSWR<DiaryDetail>(swrKey, fetcherWithToken, {
+    revalidateOnFocus: false,
+  });
 
+  const [liking, setLiking] = useState(false);
+
+  const onClickLike = async () => {
+    if (!diary || liking) return;
+    setLiking(true);
+
+    const prev = diary;
+
+    // ① 先にUIだけ +1
+    await mutate({ ...diary, like_count: (diary.like_count ?? 0) + 1 }, false);
+
+    try {
+      // ② APIで確定値をもらう
+      const result = await postLike(diary.id);
+
+      // ③ サーバー確定値で上書き
+      await mutate({ ...prev, like_count: result.like_count }, false);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      await mutate(prev, false);
+      alert('いいねに失敗しました');
+    } finally {
+      setLiking(false);
+    }
+  };
+
+  // --- 以下、あなたの既存ロジック（削除系） ---
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleted, setDeleted] = useState(false);
@@ -116,7 +168,6 @@ export default function DiaryDetailPage() {
         );
       }
 
-      // 成功
       setShowDeleteConfirm(false);
       setDeleted(true);
     } catch (e) {
@@ -138,7 +189,7 @@ export default function DiaryDetailPage() {
 
           <button
             type="button"
-            className="mt-6 w-full rounded-lg bg-[#6B7B4F] py-4 text-lg font-medium tracking-wider text-white shadow-sm transition-all active:scale-[0.97] hover:bg-[#5A6943]"
+            className="mt-6 w-full rounded-lg bg-[#6B7B4F] py-4 text-lg font-medium tracking-wider text-white shadow-sm transition-all hover:bg-[#5A6943] active:scale-[0.97]"
             onClick={() => router.push('/diaries')}
           >
             一覧に戻る
@@ -146,17 +197,33 @@ export default function DiaryDetailPage() {
         </div>
       ) : (
         <div>
-          {/* ✅ ここが「通常テキスト表示」 */}
           {notice && (
-            <p className="mb-4 rounded-lg bg-green-50 px-4 py-2 text-sm text-green-700 border border-green-400">
+            <p className="mb-4 rounded-lg border border-green-400 bg-green-50 px-4 py-2 text-sm text-green-700">
               {notice}
             </p>
           )}
 
-          <div className="relative rounded-lg bg-white shadow-sm p-6 mb-10">
-            <h2 className="mb-2 text-xl font-bold leading-relaxed border-b border-yellow-600 pb-2">
-              {diary.title}
-            </h2>
+          <div className="relative mb-10 rounded-lg bg-white p-6 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="mb-2 flex-1 border-b border-yellow-600 pb-2 text-xl font-bold leading-relaxed">
+                {diary.title}
+              </h2>
+
+              <button
+                onClick={onClickLike}
+                disabled={liking}
+                className="absolute right-4 inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm"
+              >
+                <Image
+                  src="/icons/good-before_icon.png"
+                  alt="いいね"
+                  width={25}
+                  height={25}
+                  className={liking ? 'animate-pulse' : ''}
+                />
+                <span className="tabular-nums">{diary.like_count}</span>
+              </button>
+            </div>
 
             <div className="mb-6 flex items-center justify-end gap-3 text-[12px] text-gray-500">
               <span>
@@ -171,7 +238,7 @@ export default function DiaryDetailPage() {
               <span>{diary.user_nickname ?? '名無し'}</span>
             </div>
 
-            <div className="mb-6 w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100 aspect-video">
+            <div className="mb-6 aspect-video w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
               {diary.image_url ? (
                 <img
                   src={diary.image_url}
@@ -233,7 +300,7 @@ export default function DiaryDetailPage() {
 
           <Link
             href="/diaries"
-            className="block text-center w-full rounded-lg bg-[#6B7B4F] py-4 text-lg font-medium tracking-wider text-white shadow-sm transition-all active:scale-[0.97] hover:bg-[#5A6943]"
+            className="block w-full rounded-lg bg-[#6B7B4F] py-4 text-center text-lg font-medium tracking-wider text-white shadow-sm transition-all hover:bg-[#5A6943] active:scale-[0.97]"
           >
             一覧にもどる
           </Link>
@@ -247,7 +314,7 @@ export default function DiaryDetailPage() {
                 </p>
 
                 {deleteError && (
-                  <p className="mt-3 text-xs text-red-600 whitespace-pre-wrap">
+                  <p className="mt-3 whitespace-pre-wrap text-xs text-red-600">
                     {deleteError}
                   </p>
                 )}
