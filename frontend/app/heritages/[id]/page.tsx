@@ -2,6 +2,7 @@
 
 import useSWR from 'swr';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 
 type HeritageData = {
   id: number;
@@ -58,22 +59,38 @@ export default function DetailHeritages() {
   if (!data) return <p>読み込み中...</p>;
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-md mx-auto py-4 space-y-6">
       {/* ヘッダー */}
-      <div className="space-y-3">
-        <h2 className="text-3xl font-bold text-gray-900">{data.name}</h2>
+      <div>
+        <h2 className="text-3xl font-bold mb-2">{data.name}</h2>
 
-        <p className="text-sm text-gray-500">（区分：{data.type}）</p>
+        <p className="text-sm text-gray-500 border-b border-yellow-600 pb-3 mb-5">
+          （所在地 : {data.address}、区分 : {data.year}年、区分 : {data.type}）
+        </p>
+
+        <Link
+          href={'/diaries/new'}
+          className="rounded-full px-6 py-1.5 mr-3 text-xs shadow-sm transition-colors bg-white font-bold text-gray-500 border border-[#E6DAD0]"
+        >
+          訪問記録をつける
+        </Link>
+
+        <Link
+          href={'/diaries/new'}
+          className="rounded-full px-6 py-1.5 text-xs shadow-sm transition-colors bg-[#E6DAD0] font-bold text-gray-500"
+        >
+          日記を作成する
+        </Link>
 
         <img
           src={data.image_url}
           alt="世界遺産画像"
-          className="w-full h-auto rounded-lg object-cover"
+          className="w-full h-auto mt-10 rounded-lg object-cover shadow-sm"
         />
       </div>
 
       {/* メイン */}
-      <div className="space-y-6">
+      <div className="space-y-6 bg-white px-3 py-4 rounded">
         {/* 見どころTOP3 */}
         <section className="space-y-4">
           <h3 className="bg-[#FBE3CF]  font-semibold px-3 py-2 rounded">
@@ -130,8 +147,8 @@ export default function DetailHeritages() {
         </section>
 
         {/* 世界遺産群 */}
-        <section className="space-y-2">
-          <h3 className="font-semibold border-b border-gray-300 pb-1">
+        <section className="space-y-2 mb-2">
+          <h3 className="font-semibold border-b border-yellow-800 pb-1">
             世界遺産群
           </h3>
           <p className="text-sm text-gray-700">{data.sites}</p>
