@@ -6,6 +6,7 @@ import { BadgeCard } from '../../components/ui/BadgeCard';
 import { apiFetch } from '../../lib/apiFetch';
 import Link from 'next/link';
 import { Button } from '../../components/ui/Button';
+import { AuthLoginCheck } from '../../components/auth/authLoginCheck';
 
 type VisitsMeResponse = {
   visited_heritage_ids: number[];
@@ -105,58 +106,60 @@ export default function GetBadgesPage() {
   const title = getTitleByCount(count);
 
   return (
-    <div className="mx-auto max-w-sm px-6 pt-10">
-      <Card className="text-center">
-        <p className="text-sm text-gray-500">称号</p>
+    <AuthLoginCheck>
+      <div className="mx-auto max-w-sm px-6 pt-10">
+        <Card className="text-center">
+          <p className="text-sm text-gray-500">称号</p>
 
-        <p className="mt-2 text-xl font-bold">
-          {loading ? '読み込み中...' : title}
-        </p>
-
-        <p className="mt-2 text-sm text-gray-500">訪問件数：{count}件</p>
-
-        {error && (
-          <p className="mt-2 text-xs text-red-500">
-            取得に失敗しました（{error}）
+          <p className="mt-2 text-xl font-bold">
+            {loading ? '読み込み中...' : title}
           </p>
-        )}
-      </Card>
 
-      {/* 使い方ガイド（Cardの下） */}
-      <div className="mt-4 rounded-lg bg-gray-50 p-4">
-        <p className="text-sm font-semibold text-gray-900">
-          訪問を登録するとバッジが解放されます
-        </p>
-        <p className="mt-1 text-xs text-gray-600">
-          訪問件数が増えるほど称号がアップ！
-        </p>
+          <p className="mt-2 text-sm text-gray-500">訪問件数：{count}件</p>
 
-        <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-gray-700">
-          <div className="flex-1 rounded-full bg-white px-3 py-2 text-center shadow-sm">
-            ① 訪問登録
-          </div>
-          <div className="text-gray-400">→</div>
-          <div className="flex-1 rounded-full bg-white px-3 py-2 text-center shadow-sm">
-            ② バッジ解放
-          </div>
-          <div className="text-gray-400">→</div>
-          <div className="flex-1 rounded-full bg-white px-3 py-2 text-center shadow-sm">
-            ③ 称号UP
+          {error && (
+            <p className="mt-2 text-xs text-red-500">
+              取得に失敗しました（{error}）
+            </p>
+          )}
+        </Card>
+
+        {/* 使い方ガイド（Cardの下） */}
+        <div className="mt-4 rounded-lg bg-gray-50 p-4">
+          <p className="text-sm font-semibold text-gray-900">
+            訪問を登録するとバッジが解放されます
+          </p>
+          <p className="mt-1 text-xs text-gray-600">
+            訪問件数が増えるほど称号がアップ！
+          </p>
+
+          <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-gray-700">
+            <div className="flex-1 rounded-full bg-white px-3 py-2 text-center shadow-sm">
+              ① 訪問登録
+            </div>
+            <div className="text-gray-400">→</div>
+            <div className="flex-1 rounded-full bg-white px-3 py-2 text-center shadow-sm">
+              ② バッジ解放
+            </div>
+            <div className="text-gray-400">→</div>
+            <div className="flex-1 rounded-full bg-white px-3 py-2 text-center shadow-sm">
+              ③ 称号UP
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="mt-4 flex justify-center">
-        <Link href="/new-record" className="w-full max-w-sm">
-          <Button className="w-full">訪問登録へ</Button>
-        </Link>
-      </div>
+        <div className="mt-4 flex justify-center">
+          <Link href="/new-record" className="w-full max-w-sm">
+            <Button className="w-full">訪問登録へ</Button>
+          </Link>
+        </div>
 
-      <section className="mt-8 grid grid-cols-2 gap-4">
-        {badgesForView.map((badge) => (
-          <BadgeCard key={badge.id} badge={badge} />
-        ))}
-      </section>
-    </div>
+        <section className="mt-8 grid grid-cols-2 gap-4">
+          {badgesForView.map((badge) => (
+            <BadgeCard key={badge.id} badge={badge} />
+          ))}
+        </section>
+      </div>
+    </AuthLoginCheck>
   );
 }

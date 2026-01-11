@@ -6,6 +6,7 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { apiFetchResponse } from '../../lib/apiFetch';
 import Link from 'next/link';
+import { AuthLoginCheck } from '../../components/auth/authLoginCheck';
 
 type HeritageOption = {
   id: number;
@@ -217,171 +218,173 @@ export default function NewRecordPage() {
   };
 
   return (
-    <div className="mx-auto max-w-sm px-6 pt-10">
-      <header className="mb-6 text-center">
-        <h1 className="text-xl font-bold">訪問登録</h1>
-        <p className="mt-2 text-sm text-gray-500">
-          訪問した世界遺産と日付を登録します
-        </p>
-        <p className="mt-2 text-sm text-gray-500">
-          訪問を登録するとバッジが解放されます
-        </p>
-      </header>
+    <AuthLoginCheck>
+      <div className="mx-auto max-w-sm px-6 pt-10">
+        <header className="mb-6 text-center">
+          <h1 className="text-xl font-bold">訪問登録</h1>
+          <p className="mt-2 text-sm text-gray-500">
+            訪問した世界遺産と日付を登録します
+          </p>
+          <p className="mt-2 text-sm text-gray-500">
+            訪問を登録するとバッジが解放されます
+          </p>
+        </header>
 
-      <Card>
-        {/* 世界遺産選択（select風） */}
-        <div className="relative">
-          <p className="text-sm font-medium">世界遺産</p>
+        <Card>
+          {/* 世界遺産選択（select風） */}
+          <div className="relative">
+            <p className="text-sm font-medium">世界遺産</p>
 
-          <button
-            type="button"
-            className="mt-2 w-full text-left"
-            onClick={() => setIsOpen((v) => !v)}
-          >
-            <Input
-              value={selectedHeritageName}
-              onChange={() => {}}
-              placeholder="世界遺産を選択"
-            />
-          </button>
-
-          {heritagesLoading && (
-            <p className="mt-2 text-xs text-gray-500">
-              世界遺産を読み込み中...
-            </p>
-          )}
-
-          {heritagesError && (
-            <p className="mt-2 text-xs text-red-500">{heritagesError}</p>
-          )}
-
-          {isOpen && (
-            <div className="absolute z-10 mt-2 max-h-48 w-full overflow-y-auto rounded-md border border-gray-300 bg-white shadow">
-              {heritages.map((h) => (
-                <button
-                  key={h.id}
-                  type="button"
-                  className={
-                    selectedHeritageId === h.id
-                      ? 'block w-full bg-gray-100 px-3 py-2 text-left text-sm font-medium'
-                      : 'block w-full px-3 py-2 text-left text-sm hover:bg-gray-100'
-                  }
-                  onClick={() => {
-                    setSelectedHeritageId(h.id);
-                    setIsVisitSaved(false);
-                    setMessage(null);
-                    setIsOpen(false);
-                  }}
-                >
-                  {h.id}: {h.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 訪問日 */}
-        <div className="mt-6">
-          <p className="text-sm font-medium">訪問日</p>
-
-          <div className="mt-2 grid grid-cols-2 gap-3">
-            <div>
-              <p className="mb-1 text-xs text-gray-500">開始</p>
+            <button
+              type="button"
+              className="mt-2 w-full text-left"
+              onClick={() => setIsOpen((v) => !v)}
+            >
               <Input
-                type="date"
-                value={visitedFrom}
-                onChange={handleChangeFrom}
+                value={selectedHeritageName}
+                onChange={() => {}}
+                placeholder="世界遺産を選択"
               />
-            </div>
+            </button>
 
-            <div>
-              <p className="mb-1 text-xs text-gray-500">終了</p>
-              <Input
-                type="date"
-                min={visitedFrom}
-                value={visitedTo}
-                onChange={handleChangeTo}
-              />
-            </div>
-          </div>
-
-          {!isDateRangeValid(visitedFrom, visitedTo) &&
-            visitedFrom &&
-            visitedTo && (
-              <p className="mt-2 text-xs text-red-500">
-                終了日は開始日以降にしてください
+            {heritagesLoading && (
+              <p className="mt-2 text-xs text-gray-500">
+                世界遺産を読み込み中...
               </p>
             )}
-        </div>
 
-        {/* メッセージ */}
-        {message && <p className="mt-4 text-sm text-gray-600">{message}</p>}
+            {heritagesError && (
+              <p className="mt-2 text-xs text-red-500">{heritagesError}</p>
+            )}
 
-        {/* 登録ボタン */}
-        <div className="mt-6">
-          <Button
-            disabled={!canSubmit || submitting}
-            onClick={async () => {
-              await saveVisit();
-            }}
-          >
-            {submitting ? '送信中...' : '訪問登録'}
-          </Button>
-
-          {/* 日記導線 */}
-          <div className="mt-3">
-            <Link href="/diaries" className="w-full max-w-sm">
-              <Button
-                disabled={submitting}
-                onClick={async () => {
-                  if (isVisitSaved) {
-                    alert('日記作成へ');
-                    return;
-                  }
-
-                  if (!hasDraft) {
-                    alert('日記作成へ');
-                    return;
-                  }
-
-                  const doSave = window.confirm(
-                    '訪問登録がまだ完了していません。\n訪問登録してから日記を作成しますか？',
-                  );
-
-                  if (doSave) {
-                    const ok = await saveVisit();
-                    if (!ok) return;
-                    alert('日記作成へ（遷移に置き換え）');
-                    return;
-                  }
-
-                  const discard = window.confirm(
-                    '入力内容を破棄して日記作成に進みますか？',
-                  );
-
-                  if (discard) {
-                    setSelectedHeritageId(null);
-                    setVisitedFrom('');
-                    setVisitedTo('');
-                    setIsVisitSaved(false);
-                    setMessage(null);
-                    alert('日記作成へ');
-                  }
-                }}
-              >
-                日記を作成する
-              </Button>
-            </Link>
+            {isOpen && (
+              <div className="absolute z-10 mt-2 max-h-48 w-full overflow-y-auto rounded-md border border-gray-300 bg-white shadow">
+                {heritages.map((h) => (
+                  <button
+                    key={h.id}
+                    type="button"
+                    className={
+                      selectedHeritageId === h.id
+                        ? 'block w-full bg-gray-100 px-3 py-2 text-left text-sm font-medium'
+                        : 'block w-full px-3 py-2 text-left text-sm hover:bg-gray-100'
+                    }
+                    onClick={() => {
+                      setSelectedHeritageId(h.id);
+                      setIsVisitSaved(false);
+                      setMessage(null);
+                      setIsOpen(false);
+                    }}
+                  >
+                    {h.id}: {h.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* 獲得バッジ導線 */}
-          <div className="mt-3">
-            <Link href="/get-badges" className="w-full max-w-sm">
-              <Button className="w-full">獲得したバッジを見る</Button>
-            </Link>
+          {/* 訪問日 */}
+          <div className="mt-6">
+            <p className="text-sm font-medium">訪問日</p>
+
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              <div>
+                <p className="mb-1 text-xs text-gray-500">開始</p>
+                <Input
+                  type="date"
+                  value={visitedFrom}
+                  onChange={handleChangeFrom}
+                />
+              </div>
+
+              <div>
+                <p className="mb-1 text-xs text-gray-500">終了</p>
+                <Input
+                  type="date"
+                  min={visitedFrom}
+                  value={visitedTo}
+                  onChange={handleChangeTo}
+                />
+              </div>
+            </div>
+
+            {!isDateRangeValid(visitedFrom, visitedTo) &&
+              visitedFrom &&
+              visitedTo && (
+                <p className="mt-2 text-xs text-red-500">
+                  終了日は開始日以降にしてください
+                </p>
+              )}
           </div>
-        </div>
-      </Card>
-    </div>
+
+          {/* メッセージ */}
+          {message && <p className="mt-4 text-sm text-gray-600">{message}</p>}
+
+          {/* 登録ボタン */}
+          <div className="mt-6">
+            <Button
+              disabled={!canSubmit || submitting}
+              onClick={async () => {
+                await saveVisit();
+              }}
+            >
+              {submitting ? '送信中...' : '訪問登録'}
+            </Button>
+
+            {/* 日記導線 */}
+            <div className="mt-3">
+              <Link href="/diaries" className="w-full max-w-sm">
+                <Button
+                  disabled={submitting}
+                  onClick={async () => {
+                    if (isVisitSaved) {
+                      alert('日記作成へ');
+                      return;
+                    }
+
+                    if (!hasDraft) {
+                      alert('日記作成へ');
+                      return;
+                    }
+
+                    const doSave = window.confirm(
+                      '訪問登録がまだ完了していません。\n訪問登録してから日記を作成しますか？',
+                    );
+
+                    if (doSave) {
+                      const ok = await saveVisit();
+                      if (!ok) return;
+                      alert('日記作成へ（遷移に置き換え）');
+                      return;
+                    }
+
+                    const discard = window.confirm(
+                      '入力内容を破棄して日記作成に進みますか？',
+                    );
+
+                    if (discard) {
+                      setSelectedHeritageId(null);
+                      setVisitedFrom('');
+                      setVisitedTo('');
+                      setIsVisitSaved(false);
+                      setMessage(null);
+                      alert('日記作成へ');
+                    }
+                  }}
+                >
+                  日記を作成する
+                </Button>
+              </Link>
+            </div>
+
+            {/* 獲得バッジ導線 */}
+            <div className="mt-3">
+              <Link href="/get-badges" className="w-full max-w-sm">
+                <Button className="w-full">獲得したバッジを見る</Button>
+              </Link>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </AuthLoginCheck>
   );
 }
