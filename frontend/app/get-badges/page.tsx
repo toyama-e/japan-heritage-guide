@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Card } from '../../components/ui/Card';
 import { BadgeCard } from '../../components/ui/BadgeCard';
 import { apiFetch } from '../../lib/apiFetch';
 import Link from 'next/link';
@@ -38,16 +37,13 @@ function getTitleByCount(count: number) {
 }
 
 export default function GetBadgesPage() {
-  // API から取得する state
   const [visitedIds, setVisitedIds] = useState<number[]>([]);
   const [count, setCount] = useState(0);
   const [heritages, setHeritages] = useState<Heritage[]>([]);
 
-  // 読み込み・エラー表示
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // GET /api/v1/visits/me を読む
   useEffect(() => {
     const load = async () => {
       try {
@@ -81,7 +77,6 @@ export default function GetBadgesPage() {
     load();
   }, []);
 
-  // unlocked を visitedIds から計算して BadgeCard に渡す
   const badgesForView: Badge[] = useMemo(() => {
     const visitedSet = new Set(visitedIds);
 
@@ -104,62 +99,118 @@ export default function GetBadgesPage() {
   }, [heritages, visitedIds]);
 
   const title = getTitleByCount(count);
+  const progressPct = Math.min(rememberSafePct((count / 26) * 100), 100);
 
   return (
     <AuthLoginCheck>
-      <div className="mx-auto max-w-sm px-6 pt-10">
-        <Card className="text-center">
-          <p className="text-sm text-gray-500">称号</p>
-
-          <p className="mt-2 text-xl font-bold">
-            {loading ? '読み込み中...' : title}
-          </p>
-
-          <p className="mt-2 text-sm text-gray-500">訪問件数：{count}件</p>
-
-          {error && (
-            <p className="mt-2 text-xs text-red-500">
-              取得に失敗しました（{error}）
+      {/* 背景：生成り＋ほんのり金 */}
+      <div className="min-h-screen bg-gradient-to-b from-[#fbf7ef] via-[#f7f1e3] to-[#f3ead7]">
+        <div className="mx-auto max-w-sm px-5 pt-8 pb-14 text-[15px]">
+          {/* ヘッダー */}
+          <header className="mb-4">
+            <h1 className="mt-2 text-xl font-semibold text-[#1f1e1a]">
+              獲得バッジ
+            </h1>
+            <p className="mt-1 text-base leading-relaxed text-[#2b2a26]">
+              歩いた軌跡が、称号となる
             </p>
-          )}
-        </Card>
+          </header>
 
-        {/* 使い方ガイド（Cardの下） */}
-        <div className="mt-4 rounded-lg bg-gray-50 p-4">
-          <p className="text-sm font-semibold text-gray-900">
-            訪問を登録するとバッジが解放されます
-          </p>
-          <p className="mt-1 text-xs text-gray-600">
-            訪問件数が増えるほど称号がアップ！
-          </p>
+          {/* 称号カード：墨×金 */}
+          <div className="relative overflow-hidden rounded-2xl border border-[#e6dcc7] bg-white/70 p-5 shadow-[0_12px_30px_rgba(24,20,12,0.10)] backdrop-blur">
+            {/* 金の薄い差し色（装飾） */}
+            <div className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full bg-[radial-gradient(circle_at_center,rgba(196,154,79,0.28),rgba(196,154,79,0)_65%)]" />
+            <div className="pointer-events-none absolute -bottom-28 -left-24 h-56 w-56 rounded-full bg-[radial-gradient(circle_at_center,rgba(31,30,26,0.10),rgba(31,30,26,0)_65%)]" />
 
-          <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-gray-700">
-            <div className="flex-1 rounded-full bg-white px-3 py-2 text-center shadow-sm">
-              ① 訪問登録
-            </div>
-            <div className="text-gray-400">→</div>
-            <div className="flex-1 rounded-full bg-white px-3 py-2 text-center shadow-sm">
-              ② バッジ解放
-            </div>
-            <div className="text-gray-400">→</div>
-            <div className="flex-1 rounded-full bg-white px-3 py-2 text-center shadow-sm">
-              ③ 称号UP
+            <div className="relative">
+              <p className="text-sm text-[#4a4944]">称号</p>
+              <p className="mt-2 text-[22px] font-semibold tracking-wide text-[#1f1e1a]">
+                {loading ? '読み込み中...' : title}
+              </p>
+
+              <div className="mt-3 flex items-center justify-between">
+                <p className="text-base text-[#2b2a26]">訪問件数</p>
+                <p className="text-sm font-medium text-[#1f1e1a]">
+                  {count} / 26
+                </p>
+              </div>
+
+              {/* 進捗バー：金 */}
+              <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-[#efe6d3]">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#c49a4f] to-[#e2c07a]"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+
+              {error && (
+                <p className="mt-3 text-sm font-medium text-red-700">
+                  取得に失敗しました（{error}）
+                </p>
+              )}
             </div>
           </div>
-        </div>
 
-        <div className="mt-4 flex justify-center">
-          <Link href="/new-record" className="w-full max-w-sm">
-            <Button className="w-full">訪問登録へ</Button>
-          </Link>
-        </div>
+          {/* 使い方ガイド：折り返し防止 */}
+          <div className="mt-4 rounded-2xl border border-[#eadfc9] bg-white/60 p-4 backdrop-blur">
+            <p className="text-sm font-semibold text-[#1f1e1a]">
+              訪問を登録するとバッジが解放されます
+            </p>
+            <p className="mt-2 text-sm text-[#2b2a26]">
+              訪問件数が増えるほど称号がアップ！
+            </p>
+            <div className="mt-3 grid grid-cols-3 gap-2 text-sm font-medium text-[#1f1e1a]">
+              <div className="h-9 whitespace-nowrap rounded-full border border-[#eadfc9] bg-white px-3 flex items-center justify-center shadow-sm">
+                ① 訪問登録
+              </div>
+              <div className="h-9 whitespace-nowrap rounded-full border border-[#eadfc9] bg-white px-3 flex items-center justify-center shadow-sm">
+                ② バッジ解放
+              </div>
+              <div className="h-9 whitespace-nowrap rounded-full border border-[#eadfc9] bg-white px-3 flex items-center justify-center shadow-sm">
+                ③ 称号UP
+              </div>
+            </div>
+          </div>
 
-        <section className="mt-8 grid grid-cols-2 gap-4">
-          {badgesForView.map((badge) => (
-            <BadgeCard key={badge.id} badge={badge} />
-          ))}
-        </section>
+          {/* CTA */}
+          <div className="mt-4">
+            <Link href="/new-record" className="block">
+              <Button className="w-full rounded-xl bg-[#1f1e1a] text-[#fbf7ef] hover:opacity-95">
+                訪問登録へ
+              </Button>
+            </Link>
+          </div>
+
+          {/* バッジ一覧：棚っぽく */}
+          <section className="mt-7">
+            <div className="mb-3 flex items-end justify-between">
+              <p className="text-sm font-semibold text-[#1f1e1a]">
+                未獲得のバッジは「???」として表示されます
+              </p>
+              <p className="text-sm text-[#4a4944]">
+                {loading
+                  ? '...'
+                  : `${badgesForView.filter((b) => b.unlocked).length} / 26`}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-[#eadfc9] bg-white/50 p-3 shadow-[0_10px_24px_rgba(24,20,12,0.08)] backdrop-blur">
+              <div className="grid grid-cols-2 gap-4">
+                {badgesForView.map((badge) => (
+                  <BadgeCard key={badge.id} badge={badge} />
+                ))}
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
     </AuthLoginCheck>
   );
+}
+
+// 小数やNaN対策（安全に%を作る）
+function rememberSafePct(v: number) {
+  if (!Number.isFinite(v)) return 0;
+  if (v < 0) return 0;
+  return Math.round(v);
 }

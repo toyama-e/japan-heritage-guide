@@ -28,17 +28,17 @@ type FastApiError = {
 
 function isDateRangeValid(from: string, to: string) {
   if (!from || !to) return false;
-  return from <= to; // yyyy-mm-dd なので文字列比較でOK
+  return from <= to;
 }
 
-// ★ コンポーネント外（毎回再定義しない）
+// コンポーネント外（毎回再定義しない）
 function extractDetailMessage(detail: unknown): string | null {
   if (typeof detail === 'string') return detail;
   if (Array.isArray(detail)) return '入力内容に誤りがあります';
   return null;
 }
 
-// ★ コンポーネント外
+// コンポーネント外
 async function safeReadJson<T>(res: Response): Promise<T | null> {
   try {
     return (await res.json()) as T;
@@ -227,7 +227,7 @@ export default function NewRecordPage() {
           </p>
         </header>
 
-        <Card>
+        <Card className="bg-white">
           {/* 世界遺産選択（select風） */}
           <div className="relative">
             <p className="text-sm font-medium">世界遺産</p>
@@ -320,6 +320,7 @@ export default function NewRecordPage() {
           <div className="mt-6">
             <Button
               disabled={!canSubmit || submitting}
+              className="w-full bg-black text-white hover:bg-black/90 disabled:bg-black/40"
               onClick={async () => {
                 await saveVisit();
               }}
@@ -336,10 +337,10 @@ export default function NewRecordPage() {
               )}
               <Button
                 disabled={!isVisitSaved || submitting}
+                className="w-full bg-black text-white hover:bg-black/90 disabled:bg-black/40"
                 onClick={() => {
                   router.push('/diaries');
                 }}
-                className="w-full"
               >
                 日記を作成する
               </Button>
