@@ -70,7 +70,7 @@ export default function DiaryDetailPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-
+  const [showUpdated, setShowUpdated] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -87,6 +87,20 @@ export default function DiaryDetailPage() {
 
   const idRaw = params?.id;
   const diaryId = Array.isArray(idRaw) ? idRaw[0] : idRaw;
+
+  useEffect(() => {
+    const updated = searchParams.get('updated');
+    if (updated === '1') {
+      setShowUpdated(true);
+
+      // ✅ URLから updated を消す（履歴は増やさない）
+      router.replace(`/diaries/${diaryId}`);
+
+      // ✅ 2秒後に非表示（任意）
+      const t = setTimeout(() => setShowUpdated(false), 2000);
+      return () => clearTimeout(t);
+    }
+  }, [searchParams, router, diaryId]);
 
   const swrKey = diaryId
     ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/diaries/${diaryId}`
@@ -127,7 +141,7 @@ export default function DiaryDetailPage() {
     }
   };
 
-  // --- 以下、あなたの既存ロジック（削除系） ---
+  // --- 削除系 ---
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleted, setDeleted] = useState(false);
@@ -200,6 +214,11 @@ export default function DiaryDetailPage() {
           {notice && (
             <p className="mb-4 rounded-lg border border-green-400 bg-green-50 px-4 py-2 text-sm text-green-700">
               {notice}
+            </p>
+          )}
+          {showUpdated && (
+            <p className="mb-4 rounded-lg border border-green-400 bg-green-50 px-4 py-2 text-sm text-green-700">
+              更新しました。
             </p>
           )}
 
@@ -283,6 +302,7 @@ export default function DiaryDetailPage() {
                   <button
                     type="button"
                     className="flex-1 rounded-full bg-blue-100 py-2 text-xs font-bold active:bg-gray-200"
+                    onClick={() => router.push(`/diaries/${diary.id}/edit`)}
                   >
                     編集
                   </button>
