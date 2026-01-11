@@ -7,13 +7,13 @@ import { Button } from '../../components/ui/Button';
 import { apiFetchResponse } from '../../lib/apiFetch';
 import Link from 'next/link';
 import { AuthLoginCheck } from '../../components/auth/authLoginCheck';
+import { useRouter } from 'next/navigation';
 
 type HeritageOption = {
   id: number;
   name: string;
 };
 
-// 返却は VisitOut（最低限必要なものだけ型にしてOK）
 type VisitOut = {
   id: number;
   user_id: number;
@@ -48,6 +48,7 @@ async function safeReadJson<T>(res: Response): Promise<T | null> {
 }
 
 export default function NewRecordPage() {
+  const router = useRouter();
   const [heritages, setHeritages] = useState<HeritageOption[]>([]);
   const [heritagesLoading, setHeritagesLoading] = useState(true);
   const [heritagesError, setHeritagesError] = useState<string | null>(null);
@@ -75,10 +76,6 @@ export default function NewRecordPage() {
   // 通信状態/メッセージ
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-
-  // 何か入力（下書き）があるか：未保存の確認に使う
-  const hasDraft =
-    selectedHeritageId !== null || visitedFrom !== '' || visitedTo !== '';
 
   const canSubmit =
     selectedHeritageId !== null &&
@@ -331,49 +328,21 @@ export default function NewRecordPage() {
             </Button>
 
             {/* 日記導線 */}
-            <div className="mt-3">
-              <Link href="/diaries" className="w-full max-w-sm">
-                <Button
-                  disabled={submitting}
-                  onClick={async () => {
-                    if (isVisitSaved) {
-                      alert('日記作成へ');
-                      return;
-                    }
-
-                    if (!hasDraft) {
-                      alert('日記作成へ');
-                      return;
-                    }
-
-                    const doSave = window.confirm(
-                      '訪問登録がまだ完了していません。\n訪問登録してから日記を作成しますか？',
-                    );
-
-                    if (doSave) {
-                      const ok = await saveVisit();
-                      if (!ok) return;
-                      alert('日記作成へ（遷移に置き換え）');
-                      return;
-                    }
-
-                    const discard = window.confirm(
-                      '入力内容を破棄して日記作成に進みますか？',
-                    );
-
-                    if (discard) {
-                      setSelectedHeritageId(null);
-                      setVisitedFrom('');
-                      setVisitedTo('');
-                      setIsVisitSaved(false);
-                      setMessage(null);
-                      alert('日記作成へ');
-                    }
-                  }}
-                >
-                  日記を作成する
-                </Button>
-              </Link>
+            <div className="mt-3 w-full max-w-sm">
+              {!isVisitSaved && (
+                <p className="mt-2 text-xs text-gray-500">
+                  日記を作成するには、先に訪問登録を完了してください
+                </p>
+              )}
+              <Button
+                disabled={!isVisitSaved || submitting}
+                onClick={() => {
+                  router.push('/diaries');
+                }}
+                className="w-full"
+              >
+                日記を作成する
+              </Button>
             </div>
 
             {/* 獲得バッジ導線 */}
