@@ -154,11 +154,11 @@ export default function DiaryDetailPage() {
           )}
 
           <div className="relative rounded-lg bg-white shadow-sm p-6 mb-10">
-            <p className="mb-3 w-fit rounded-full bg-[#D3D6C6] px-3 py-0.5 text-[12px]">
-              {diary.world_heritage_name ?? '世界遺産未設定'}
-            </p>
+            <h2 className="mb-2 text-xl font-bold leading-relaxed border-b border-yellow-600 pb-2">
+              {diary.title}
+            </h2>
 
-            <div className="mb-6 flex items-center gap-4 text-[12px] text-gray-500">
+            <div className="mb-6 flex items-center justify-end gap-3 text-[12px] text-gray-500">
               <span>
                 {diary.created_at
                   ? new Date(diary.created_at).toLocaleDateString('ja-JP', {
@@ -170,10 +170,6 @@ export default function DiaryDetailPage() {
               </span>
               <span>{diary.user_nickname ?? '名無し'}</span>
             </div>
-
-            <h1 className="mb-6 text-lg font-bold leading-relaxed">
-              {diary.title}
-            </h1>
 
             <div className="mb-6 w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100 aspect-video">
               {diary.image_url ? (
@@ -195,6 +191,10 @@ export default function DiaryDetailPage() {
               )}
             </div>
 
+            <p className="mb-3 w-fit rounded-full bg-[#D3D6C6] px-3 py-0.5 text-[12px]">
+              {diary.world_heritage_name ?? '世界遺産未設定'}
+            </p>
+
             <div className="mb-2 text-[12px] font-bold text-gray-500">
               訪問日：
               {diary.visit_day
@@ -215,13 +215,13 @@ export default function DiaryDetailPage() {
                 <>
                   <button
                     type="button"
-                    className="flex-1 rounded-full bg-gray-100 py-2 text-xs font-bold text-gray-600 active:bg-gray-200"
+                    className="flex-1 rounded-full bg-blue-100 py-2 text-xs font-bold active:bg-gray-200"
                   >
                     編集
                   </button>
                   <button
                     type="button"
-                    className="flex-1 rounded-full bg-gray-100 py-2 text-xs font-bold text-gray-600 active:bg-gray-200"
+                    className="flex-1 rounded-full bg-gray-100 py-2 text-xs font-bold active:bg-gray-200"
                     onClick={handleClickDelete}
                   >
                     削除
