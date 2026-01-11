@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.firebase_dependency import get_current_user
 from app.models.user import User as DBUser
-from app.schemas.diary import DiaryListItem2, DiaryDetail, DiaryCreate
-from app.crud.diary import get_list_item, get_detail_item, create_diary
+from app.schemas.diary import DiaryListItem2, DiaryDetail, DiaryCreate,DiaryDeleteResponse
+from app.crud.diary import get_list_item, get_detail_item, create_diary,get_by_id, delete
 
 router = APIRouter()
 
@@ -65,3 +65,18 @@ def create_diary_api(
 
     data["is_owner"] = True  # 作成者本人なので常に true
     return data
+
+@router.delete("/diaries/{diary_id}", status_code=204)
+def delete_diary(
+    diary_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    diary = get_by_id(db, diary_id)
+    if diary is None:
+        raise HTTPException(status_code=404, detail="Diary not found")
+
+    if diary.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    delete(db, diary)

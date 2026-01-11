@@ -21,6 +21,7 @@ class DiaryListItem(BaseModel):
     user_nickname: str | None
     class Config:
         from_attributes = True
+
 class DiaryListItem2(BaseModel):
     id: int
     user_id: int
@@ -40,7 +41,6 @@ class DiaryListItem2(BaseModel):
     deleted_at: datetime | None
 
     model_config = ConfigDict(from_attributes=True)
-
 
 # 詳細用（前回追加したもの）
 class DiaryDetail(BaseModel):
@@ -64,5 +64,9 @@ class DiaryDetail(BaseModel):
     is_owner: bool
 
     model_config = ConfigDict(from_attributes=True)
+
 class DiaryCreate(DiaryBase):
     pass
+
+class DiaryDeleteResponse(BaseModel):
+    message: str = "deleted"

@@ -73,3 +73,11 @@ def create_diary(db: Session, user_id: int, payload: DiaryCreate) -> Diary:
     db.commit()
     db.refresh(diary)
     return diary
+
+def get_by_id(db: Session, diary_id: int) -> Diary | None:
+    return db.query(Diary).filter(Diary.id == diary_id).first()
+
+
+def delete(db: Session, diary: Diary) -> None:
+    db.delete(diary)
+    db.commit()
