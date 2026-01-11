@@ -1,5 +1,6 @@
 from datetime import date, datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Optional
 
 class DiaryBase(BaseModel):
     world_heritage_id: int
@@ -76,3 +77,16 @@ class DiaryDeleteResponse(BaseModel):
 class DiaryLikeOut(BaseModel):
     diary_id: int
     like_count: int
+
+class DiaryUpdate(BaseModel):
+    # 送られてきた項目だけ更新したいので Optional
+    world_heritage_id: Optional[int] = None
+    visit_id: Optional[int] = None
+    visit_day: Optional[date] = None
+
+    title: Optional[str] = Field(default=None, max_length=200)
+    text: Optional[str] = Field(default=None, max_length=10000)
+
+    # ✅ 画像差し替え：フロントでアップしたURLを保存
+    #    null を送れば画像削除もできる
+    image_url: Optional[str] = None

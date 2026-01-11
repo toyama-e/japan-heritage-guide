@@ -3,7 +3,8 @@ from sqlalchemy import update, select
 from app.models.diary import Diary
 from app.models.user import User
 from app.models.heritage import WorldHeritage
-from app.schemas.diary import DiaryCreate
+from app.schemas.diary import DiaryCreate, DiaryUpdate
+from fastapi import HTTPException
 
 def get_list_item(
     db: Session,
@@ -108,3 +109,50 @@ def increment_like_count(db: Session, diary_id: int) -> int | None:
 
     db.commit()
     return int(result)
+
+def update_diary(
+    db: Session,
+    diary_id: int,
+    current_user_id: int,
+    payload: DiaryUpdate,
+):
+    # ✅ 削除済みは編集不可にする
+    diary = (
+        db.query(Diary)
+        .filter(Diary.id == diary_id, Diary.deleted_at.is_(None))
+        .first()
+    )
+    if diary is None:
+        raise HTTPException(status_code=404, detail="Diary not found")
+
+    # ✅ 自分の日記だけ編集可能
+    if diary.user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    # ✅ 送られてきた項目だけ更新（PATCH）
+    update_data = payload.model_dump(exclude_unset=True)
+    for k, v in update_data.items():
+        setattr(diary, k, v)
+
+    db.commit()
+    db.refresh(diary)
+
+    # 返却用に JOIN した形で返す（一覧/詳細と揃う）
+    return get_detail_item(db, diary_id)
+
+def update_image_url(db: Session, diary_id: int, current_user_id: int, image_url: str) -> Diary:
+    diary = (
+        db.query(Diary)
+        .filter(Diary.id == diary_id, Diary.deleted_at.is_(None))
+        .first()
+    )
+    if diary is None:
+        raise HTTPException(status_code=404, detail="Diary not found")
+
+    if diary.user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    diary.image_url = image_url
+    db.commit()
+    db.refresh(diary)
+    return diary
