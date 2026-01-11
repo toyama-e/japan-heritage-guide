@@ -76,12 +76,74 @@ export default function DiaryDetailPage() {
     fetcherWithToken,
   );
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handleClickDelete = () => {
+    setDeleteError(null);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteError(null);
+    setShowDeleteConfirm(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!diaryId) return;
+
+    setDeleteError(null);
+    setIsDeleting(true);
+
+    try {
+      const token = await getIdToken();
+      if (!token) throw new Error('Not authenticated');
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/diaries/${diaryId}`,
+        {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        throw new Error(
+          `Delete failed: ${res.status} ${res.statusText}\n${body}`,
+        );
+      }
+
+      // 成功
+      setShowDeleteConfirm(false);
+      setDeleted(true);
+    } catch (e) {
+      setDeleteError(e instanceof Error ? e.message : '削除に失敗しました');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <AuthLoginCheck>
       {error ? (
         <div className="p-10 text-center">日記の取得に失敗しました。</div>
       ) : isLoading || !diary ? (
         <div className="p-10 text-center">読み込み中...</div>
+      ) : deleted ? (
+        <div className="rounded-lg bg-white p-6 shadow-sm">
+          <p className="text-lg font-bold">削除されました</p>
+
+          <button
+            type="button"
+            className="mt-6 w-full rounded-lg bg-[#6B7B4F] py-4 text-lg font-medium tracking-wider text-white shadow-sm transition-all active:scale-[0.97] hover:bg-[#5A6943]"
+            onClick={() => router.push('/diaries')}
+          >
+            一覧に戻る
+          </button>
+        </div>
       ) : (
         <div>
           {/* ✅ ここが「通常テキスト表示」 */}
@@ -160,6 +222,7 @@ export default function DiaryDetailPage() {
                   <button
                     type="button"
                     className="flex-1 rounded-full bg-gray-100 py-2 text-xs font-bold text-gray-600 active:bg-gray-200"
+                    onClick={handleClickDelete}
                   >
                     削除
                   </button>
@@ -174,6 +237,43 @@ export default function DiaryDetailPage() {
           >
             一覧にもどる
           </Link>
+
+          {showDeleteConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+              <div className="w-full max-w-sm rounded-lg bg-white p-5 shadow">
+                <p className="text-base font-semibold">本当に削除しますか？</p>
+                <p className="mt-2 text-sm text-gray-600">
+                  この操作は取り消せません。
+                </p>
+
+                {deleteError && (
+                  <p className="mt-3 text-xs text-red-600 whitespace-pre-wrap">
+                    {deleteError}
+                  </p>
+                )}
+
+                <div className="mt-4 flex gap-2">
+                  <button
+                    type="button"
+                    className="w-1/2 rounded-md border border-gray-300 bg-white px-4 py-2"
+                    onClick={handleCancelDelete}
+                    disabled={isDeleting}
+                  >
+                    いいえ
+                  </button>
+
+                  <button
+                    type="button"
+                    className="w-1/2 rounded-md bg-red-600 px-4 py-2 text-white disabled:opacity-60"
+                    onClick={handleConfirmDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? '削除中...' : 'はい'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </AuthLoginCheck>
