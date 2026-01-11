@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import Image from 'next/image';
@@ -41,6 +41,7 @@ const fetcherWithToken = async (url: string) => {
 
 export default function DiaryListPage() {
   const [activeTab, setActiveTab] = useState<'mine' | 'all'>('all');
+  const [q, setQ] = useState(''); // ✅ 追加：検索文字
   const scope = activeTab === 'mine' ? 'mine' : 'all';
 
   const {
@@ -51,6 +52,28 @@ export default function DiaryListPage() {
     `${process.env.NEXT_PUBLIC_API_URL}/api/v1/diaries?scope=${scope}`,
     fetcherWithToken,
   );
+
+  // ✅ 追加：検索フィルタ（世界遺産一覧と同じやり方）
+  const filtered = useMemo(() => {
+    if (!list) return [];
+
+    const query = q.trim().toLowerCase();
+    if (!query) return list;
+
+    return list.filter((d) => {
+      const title = (d.title ?? '').toLowerCase();
+      const text = (d.text ?? '').toLowerCase();
+      const wh = (d.world_heritage_name ?? '').toLowerCase();
+      const nick = (d.user_nickname ?? '').toLowerCase();
+
+      return (
+        title.includes(query) ||
+        text.includes(query) ||
+        wh.includes(query) ||
+        nick.includes(query)
+      );
+    });
+  }, [list, q]);
 
   return (
     <AuthLoginCheck>
@@ -95,14 +118,28 @@ export default function DiaryListPage() {
             </Link>
           </div>
 
+          {/* ✅ 追加：検索欄 */}
+          <div className="mb-5">
+            <label className="sr-only" htmlFor="q">
+              検索
+            </label>
+            <input
+              id="q"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="タイトル・本文・世界遺産名・ユーザー名で検索"
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-gray-400 focus:border-gray-300 focus:ring-2 focus:ring-gray-200"
+            />
+          </div>
+
           {/* 一覧 */}
           <div className="main">
-            {list.length === 0 ? (
+            {filtered.length === 0 ? (
               <div className="rounded-lg bg-gray-50 p-4 text-sm">
                 表示できる日記がありません
               </div>
             ) : (
-              list.map((diary) => (
+              filtered.map((diary) => (
                 <Link
                   href={`/diaries/${diary.id}`}
                   key={diary.id}
@@ -130,7 +167,7 @@ export default function DiaryListPage() {
                     </div>
 
                     <div className="flex flex-1 flex-col">
-                      <p className="w-fit mb-2 rounded-full bg-[#D3D6C6] px-3 py-0.5 text-[10px]">
+                      <p className="mb-2 w-fit rounded-full bg-[#D3D6C6] px-3 py-0.5 text-[10px]">
                         {diary.world_heritage_name ?? ''}
                       </p>
                       <div className="mb-1 flex items-center gap-2 text-[10px] text-gray-600">
