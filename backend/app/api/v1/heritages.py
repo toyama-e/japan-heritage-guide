@@ -1,5 +1,5 @@
 # backend/api/v1/heritages.py
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.crud.heritage import get_all, get_by_id
