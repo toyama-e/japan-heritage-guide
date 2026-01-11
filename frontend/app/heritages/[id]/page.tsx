@@ -69,7 +69,7 @@ export default function DetailHeritages() {
         </p>
 
         <Link
-          href={'/diaries/new'}
+          href={'/new-record'}
           className="rounded-full px-6 py-1.5 mr-3 text-xs shadow-sm transition-colors bg-white font-bold text-gray-500 border border-[#E6DAD0]"
         >
           訪問記録をつける
