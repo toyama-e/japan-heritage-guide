@@ -8,11 +8,7 @@ import { apiFetchResponse } from '../../lib/apiFetch';
 import Link from 'next/link';
 import { AuthLoginCheck } from '../../components/auth/authLoginCheck';
 import { useRouter } from 'next/navigation';
-
-type HeritageOption = {
-  id: number;
-  name: string;
-};
+import { BadgeCard } from '../../components/ui/BadgeCard';
 
 type VisitOut = {
   id: number;
@@ -24,6 +20,20 @@ type VisitOut = {
 
 type FastApiError = {
   detail?: unknown;
+};
+
+type Heritage = {
+  id: number;
+  name: string;
+  badge_image_url: string | null;
+};
+
+type Badge = {
+  id: number;
+  no: string;
+  name: string;
+  imageUrl: string;
+  unlocked: boolean;
 };
 
 function isDateRangeValid(from: string, to: string) {
@@ -47,21 +57,30 @@ async function safeReadJson<T>(res: Response): Promise<T | null> {
   }
 }
 
+// 「No.001」みたいな表示を作る helper
+function toNo(id: number) {
+  return `No.${String(id).padStart(3, '0')}`;
+}
+
 export default function NewRecordPage() {
   const router = useRouter();
-  const [heritages, setHeritages] = useState<HeritageOption[]>([]);
+
+  const [heritages, setHeritages] = useState<Heritage[]>([]);
   const [heritagesLoading, setHeritagesLoading] = useState(true);
   const [heritagesError, setHeritagesError] = useState<string | null>(null);
+
+  const [showPopup, setShowPopup] = useState(false);
+  const [earnedBadge, setEarnedBadge] = useState<Badge | null>(null);
 
   // select風プルダウン用
   const [isOpen, setIsOpen] = useState(false);
 
-  // 「選択状態」は id だけ持つ（name は後で計算して出す）
+  // 「選択状態」は id だけ持つ
   const [selectedHeritageId, setSelectedHeritageId] = useState<number | null>(
     null,
   );
 
-  // id から表示名を計算して作る（stateにしない）
+  // id から表示名を計算
   const selectedHeritageName = useMemo(() => {
     if (selectedHeritageId === null) return '';
     return heritages.find((h) => h.id === selectedHeritageId)?.name ?? '';
@@ -70,7 +89,7 @@ export default function NewRecordPage() {
   const [visitedFrom, setVisitedFrom] = useState('');
   const [visitedTo, setVisitedTo] = useState('');
 
-  // 訪問登録が完了したか（登録ボタンを押して成功した扱いにできたか）
+  // 訪問登録が完了したか
   const [isVisitSaved, setIsVisitSaved] = useState(false);
 
   // 通信状態/メッセージ
@@ -107,19 +126,19 @@ export default function NewRecordPage() {
       try {
         setHeritagesLoading(true);
         setHeritagesError(null);
+        console.log(
+          'heritages ids:',
+          heritages.map((h) => h.id),
+        );
+        const res = await apiFetchResponse('/api/v1/heritages');
 
-        const data = await apiFetchResponse('/api/v1/heritages');
-
-        if (!data.ok) {
-          setHeritagesError(`取得に失敗しました（${data.status}）`);
+        if (!res.ok) {
+          setHeritagesError(`取得に失敗しました（${res.status}）`);
           return;
         }
 
-        const json = (await data.json()) as {
-          id: number;
-          name: string;
-        }[];
-
+        // badge_image_url も受け取る
+        const json = (await res.json()) as Heritage[];
         setHeritages(json);
       } catch (e) {
         setHeritagesError(
@@ -164,7 +183,24 @@ export default function NewRecordPage() {
       if (res.status === 201) {
         await safeReadJson<VisitOut>(res);
         setIsVisitSaved(true);
-        setMessage('訪問登録しました');
+
+        const h = heritages.find((x) => x.id === selectedHeritageId);
+
+        // 獲得バッジを特定してポップアップ表示
+        if (h) {
+          const badge: Badge = {
+            id: h.id,
+            no: toNo(h.id),
+            name: h.name,
+            imageUrl:
+              h.badge_image_url ??
+              'http://localhost:8000/static/badges/placeholder.png',
+            unlocked: true,
+          };
+
+          setEarnedBadge(badge);
+          setShowPopup(true);
+        }
         return true;
       }
 
@@ -216,7 +252,7 @@ export default function NewRecordPage() {
 
   return (
     <AuthLoginCheck>
-      <div className="mx-auto max-w-sm px-6 pt-10">
+      <div className="mx-auto max-w-sm px-6 pt-10 text-[15px] text-gray-900">
         <header className="mb-6 text-center">
           <h1 className="text-xl font-bold">訪問登録</h1>
           <p className="mt-2 text-sm text-gray-500">
@@ -345,15 +381,64 @@ export default function NewRecordPage() {
                 日記を作成する
               </Button>
             </div>
-
-            {/* 獲得バッジ導線 */}
-            <div className="mt-3">
-              <Link href="/get-badges" className="w-full max-w-sm">
-                <Button className="w-full">獲得したバッジを見る</Button>
-              </Link>
-            </div>
           </div>
         </Card>
+
+        {/* ポップアップ */}
+        {showPopup && earnedBadge && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
+            <div className="w-full max-w-sm rounded-2xl bg-[#fbf7ef] shadow-xl ring-1 ring-black/10">
+              {/* ヘッダー（固定） */}
+              <div className="flex items-start justify-between gap-3 border-b border-black/10 p-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">
+                    新しいバッジを解放
+                  </p>
+                  <p className="mt-1 text-lg font-bold text-[#1b1b1b]">
+                    バッジを獲得しました！
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowPopup(false)}
+                  className="rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-black/5"
+                  aria-label="閉じる"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* 本文（ここだけスクロール） */}
+              <div className="max-h-[70vh] overflow-y-auto p-4">
+                <div className="mx-auto w-full max-w-[280px]">
+                  <BadgeCard badge={earnedBadge} />
+                </div>
+
+                {/* 獲得バッジページへの導線 */}
+                <div className="mt-5">
+                  <Link href="/get-badges" className="block w-full">
+                    <Button
+                      className="w-full bg-white text-black ring-1 ring-black/20 hover:bg-black/5"
+                      onClick={() => setShowPopup(false)}
+                    >
+                      獲得したバッジを見る
+                    </Button>
+                  </Link>
+                </div>
+
+                {/* 閉じる */}
+                <button
+                  type="button"
+                  onClick={() => setShowPopup(false)}
+                  className="mt-3 w-full rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white"
+                >
+                  閉じる
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AuthLoginCheck>
   );
