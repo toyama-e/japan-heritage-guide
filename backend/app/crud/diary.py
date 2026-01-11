@@ -14,34 +14,38 @@ def get_list_item(
 ):
     q = (
         db.query(
-            Diary.id,
-            Diary.user_id,
+            Diary.id.label("id"),
+            Diary.user_id.label("user_id"),
             User.nickname.label("user_nickname"),
-            Diary.world_heritage_id,
+            Diary.world_heritage_id.label("world_heritage_id"),
             WorldHeritage.name.label("world_heritage_name"),
-            Diary.visit_id,
-            Diary.visit_day,
-            Diary.title,
-            Diary.text,
-            Diary.image_url,
-            Diary.created_at,
-            Diary.updated_at,
-            Diary.deleted_at,
+            Diary.visit_id.label("visit_id"),
+            Diary.visit_day.label("visit_day"),
+            Diary.title.label("title"),
+            Diary.text.label("text"),
+            Diary.image_url.label("image_url"),
+            Diary.like_count.label("like_count"),
+            Diary.created_at.label("created_at"),
+            Diary.updated_at.label("updated_at"),
+            Diary.deleted_at.label("deleted_at"),
         )
         .join(User, User.id == Diary.user_id)
         .join(WorldHeritage, WorldHeritage.id == Diary.world_heritage_id)
-        .filter(Diary.deleted_at.is_(None))
     )
 
     if scope == "mine":
         q = q.filter(Diary.user_id == current_user_id)
 
-    rows = (
-        q.order_by(Diary.id.desc())
+    q = (
+        q.filter(Diary.deleted_at.is_(None))
+        .order_by(Diary.created_at.desc())
         .offset(skip)
         .limit(limit)
-        .all()
     )
+
+    rows = q.all()
+
+    # ★ここが超重要：Row→dictにして返す（Pydanticが検証できる形になる）
     return [dict(r._mapping) for r in rows]
 
 def get_detail_item(db: Session, diary_id: int):
@@ -57,6 +61,9 @@ def get_detail_item(db: Session, diary_id: int):
             Diary.title,
             Diary.text,
             Diary.image_url,
+
+            Diary.like_count,          # ★追加
+
             Diary.created_at,
             Diary.updated_at,
             Diary.deleted_at,
