@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 const items = [
@@ -16,32 +15,46 @@ export const BottomTabBar = () => {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white h-25 mx-auto shadow-[0px_-5px_10px_-2px_#c3c1c1]">
-      <ul className="flex h-full justify-between px-2 text-xs font-black items-center">
+    <nav className="fixed bottom-0 left-0 right-0 mx-auto h-25 bg-white shadow-[0px_-5px_10px_-2px_#c3c1c1]">
+      <ul className="flex h-full items-center justify-between px-2 text-xs font-black">
         {items.map((item) => {
-          const isActive = pathname === item.href;
+          // 詳細ページでもアクティブにしたい場合は startsWith が便利
+          const isActive =
+            item.href === '/'
+              ? pathname === '/'
+              : pathname === item.href || pathname.startsWith(item.href + '/');
+
+          const size =
+            item.label === '日記' || item.label === '獲得バッジ' ? 40 : 45;
 
           return (
             <li key={item.href} className="flex-1 text-center">
               <Link
                 href={item.href}
-                className={`flex flex-col items-center gap-2 ${
-                  isActive ? 'font-bold text-black' : 'text-gray-500'
-                }`}
+                className={[
+                  'flex flex-col items-center gap-2',
+                  isActive ? 'text-[#5A6943] font-bold' : 'text-[#A3A988]',
+                ].join(' ')}
               >
-                <div className="flex items-center justify-center h-10">
-                  <Image
-                    src={item.icon}
-                    alt={item.label}
-                    width={
-                      item.label === '日記' || item.label === '獲得バッジ'
-                        ? 33
-                        : 40
-                    }
-                    height={40}
-                    className={isActive ? '' : 'opacity-60'}
+                <div className="flex h-10 items-center justify-center">
+                  <span
+                    className="inline-block bg-current"
+                    style={{
+                      width: size,
+                      height: size,
+                      WebkitMaskImage: `url(${item.icon})`,
+                      maskImage: `url(${item.icon})`,
+                      WebkitMaskRepeat: 'no-repeat',
+                      maskRepeat: 'no-repeat',
+                      WebkitMaskPosition: 'center',
+                      maskPosition: 'center',
+                      WebkitMaskSize: 'contain',
+                      maskSize: 'contain',
+                    }}
+                    aria-hidden="true"
                   />
                 </div>
+
                 <span className="font-xl">{item.label}</span>
               </Link>
             </li>
