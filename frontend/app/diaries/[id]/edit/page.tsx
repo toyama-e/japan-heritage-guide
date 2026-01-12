@@ -300,23 +300,35 @@ export default function DiaryEditPage() {
               onChange={(e) => setVisitDay(e.target.value)}
               className="mb-5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#6B7B4F]"
             />
-            <p className="-mt-4 mb-5 text-[11px] text-gray-500">
-              未設定にしたい場合は空にしてください
-            </p>
 
             {/* 画像ファイル */}
             <label className="mb-2 block text-sm font-bold text-gray-700">
               画像（差し替え）
             </label>
+
+            <div className="flex items-center gap-3">
+              {/* 見た目用ボタン */}
+              <label
+                htmlFor="image-upload"
+                className="nline-flex cursor-pointer items-center gap-2rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 active:scale-[0.97] mb-4 rounded-lg"
+              >
+                📷 画像を選択
+              </label>
+
+              {/* ファイル名表示 */}
+              {selectedFile && (
+                <span className="max-w-[180px] truncate text-xs text-gray-600">
+                  {selectedFile.name}
+                </span>
+              )}
+            </div>
             <input
+              id="image-upload"
               type="file"
               accept="image/*"
               onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
-              className="mb-3 block w-full text-sm"
+              className="hidden"
             />
-            <p className="mb-4 text-[11px] text-gray-500">
-              画像を選んで保存すると、Supabase Storage上の画像が差し替わります。
-            </p>
 
             {/* プレビュー */}
             <div className="mb-6 aspect-video w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
