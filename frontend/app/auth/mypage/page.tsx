@@ -12,6 +12,8 @@ import {
 import { AuthLoginCheck } from '../../../components/auth/authLoginCheck';
 import Diary from '../../../components/auth/mypage-daiarise';
 import UserCard from '../../../components/auth/userCard';
+import SubscriptionSection from '../../../components/stripe/SubscriptionSection';
+import { useLatestSubscription } from '../../../lib/stripe/useSubscription';
 
 type UserData = {
   email?: string | null;
@@ -32,6 +34,7 @@ const fetcherWithToken = async (url: string) => {
 export default function MyPage() {
   const [tokenReady, setTokenReady] = useState(false);
 
+  // Firebase Auth の状態確認
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
@@ -41,11 +44,25 @@ export default function MyPage() {
     return () => unsubscribe();
   }, []);
 
+  // ユーザー情報取得（DB/me）
   const { data: user, mutate } = useSWR<UserData>(
     tokenReady ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/me` : null,
     fetcherWithToken,
   );
 
+  // サブスクリプション（Firestore）
+  const { subscription } = useLatestSubscription(auth.currentUser);
+  /// 状態解放
+  const subscriptionStatus: 'active' | 'free' =
+    subscription?.status === 'active' ? 'active' : 'free';
+  /// Stripe用 subscriptionId
+  const subscriptionId = subscription?.id ?? null;
+  ///有効期限
+  const premiumUntil = subscription?.current_period_end
+    ? subscription.current_period_end.toDate()
+    : null;
+
+  //プロフィール更新
   //handleUpdate submitハンドラー Firebase と DB に同期
   const handleUpdate = async (
     email: string,
@@ -58,7 +75,7 @@ export default function MyPage() {
       return;
     }
 
-    //Firebase Auth 側を更新
+    ///Firebase Auth 側を更新
     if (nickname && nickname !== currentUser.displayName) {
       await updateProfile(currentUser, { displayName: nickname });
     }
@@ -67,7 +84,7 @@ export default function MyPage() {
       await updateEmail(currentUser, email);
     }
 
-    //DB 側にも PATCH で更新
+    ///DB 側にも PATCH で更新
     const token = await getIdToken();
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/me`, {
       method: 'PATCH',
@@ -84,11 +101,13 @@ export default function MyPage() {
     alert('更新成功');
   };
 
+  //ログアウト
   //signOut を引数なしで呼ぶラッパー関数
   const handleLogout = () => {
     firebaseSignOut(auth); // auth 引数を渡す
   };
 
+  //ローディング
   if (!user) {
     return (
       <AuthLoginCheck>
@@ -106,6 +125,16 @@ export default function MyPage() {
 
         {/* ユーザー情報カード */}
         <UserCard user={user} onUpdate={handleUpdate} onLogout={handleLogout} />
+
+        {/* ★ サブスクリプション（MyPage が管理） */}
+        <div className="mt-8">
+          <SubscriptionSection
+            subscriptionStatus={subscriptionStatus}
+            premiumUntil={premiumUntil}
+            subscriptionId={subscriptionId}
+            user={auth.currentUser}
+          />
+        </div>
 
         {/* 日記リスト */}
         <div className="mt-8">
