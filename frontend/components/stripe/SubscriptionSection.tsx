@@ -4,23 +4,35 @@ import { Card } from '../ui/Card';
 
 type Props = {
   subscriptionStatus?: 'free' | 'active' | 'canceled';
+  premiumUntil?: Date | null;
+  subscriptionId?: string | null;
   user: User;
 };
 
 export default function SubscriptionSection({
   subscriptionStatus,
+  premiumUntil,
   user,
 }: Props) {
   const isPremium = subscriptionStatus === 'active';
 
   return (
     <Card className="bg-white">
-      <h2 className="text-xl font-semibold mb-4 text-center">Premiumプラン</h2>
+      <h2 className="text-xl font-semibold mb-4 text-center">
+        いさんぽPremium
+      </h2>
 
       {isPremium ? (
-        <div className="rounded-lg bg-green-50 p-4 text-green-800 text-sm">
-          <p className="font-semibold mb-1">🎉 プレミアム会員です</p>
-          <p>すべての有料機能が利用できます。</p>
+        <div className="rounded-lg bg-green-50 p-4 text-green-800 text-sm space-y-3">
+          <div>
+            <p className="font-semibold mb-1">🎉 プレミアム会員です</p>
+            <p>すべての有料機能が利用できます。</p>
+            {premiumUntil && (
+              <p className="mt-2 text-xs text-green-700">
+                有効期限：{premiumUntil.toLocaleDateString('ja-JP')}
+              </p>
+            )}
+          </div>
         </div>
       ) : (
         <>

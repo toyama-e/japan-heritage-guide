@@ -1,5 +1,12 @@
 import { User } from 'firebase/auth';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  addDoc,
+  onSnapshot,
+} from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { db } from '../../lib/auth/firebase';
 import { Button } from '../ui/Button';
@@ -24,6 +31,7 @@ type Props = {
 const ProductList = ({ user }: Props) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null); // どのボタンが処理中か管理
 
   // --- 初回レンダリング時に商品データを取得 ---
   useEffect(() => {
@@ -70,6 +78,56 @@ const ProductList = ({ user }: Props) => {
     fetchProducts();
   }, []);
 
+  // --- Firebase版 Stripe Checkout にリダイレクトする関数 ---
+  const redirectToCheckout = async (priceId: string) => {
+    try {
+      console.log('🛒 [Checkout] 購入ボタンクリック', {
+        uid: user.uid,
+        priceId,
+      });
+      setCheckoutLoading(priceId); // このボタンだけローディング中表示
+
+      // customers/{uid}/checkout_sessions にドキュメント作成
+      const collectionRef = collection(
+        db,
+        `customers/${user.uid}/checkout_sessions`,
+      );
+      const docRef = await addDoc(collectionRef, {
+        mode: 'subscription', // ← サブスクリプションモード
+        billing_address_collection: 'auto',
+        success_url: window.location.origin, // 決済成功後
+        cancel_url: window.location.origin, // キャンセル時
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+      });
+      console.log('🛒 [Checkout] Checkout Session ドキュメント作成', docRef.id);
+
+      // URL生成されたら自動で Stripe Checkout へ遷移
+      onSnapshot(docRef, (snap) => {
+        const { url, error } = snap.data() as { url?: string; error?: Error };
+
+        if (error) {
+          console.error('🛒 [Checkout] エラー', error);
+          alert(`🛒 エラーが発生しました: ${error.message}`);
+        }
+
+        if (url) {
+          console.log('🛒 [Checkout] Checkout URL取得、リダイレクト', url);
+          window.location.assign(url);
+        }
+      });
+    } catch (err) {
+      console.error('🛒 [Checkout] Checkout 作成中にエラー', err);
+      alert('🛒 Checkout 作成中にエラーが発生しました');
+    } finally {
+      setCheckoutLoading(null); // ローディング解除
+    }
+  };
+
   // --- ローディング中表示 ---
   if (loading) {
     return <p className="text-sm text-gray-500">プランを読み込み中...</p>;
@@ -92,15 +150,12 @@ const ProductList = ({ user }: Props) => {
               {/* 購入ボタン */}
               <Button
                 className="bg-[#D3D6C6] hover:bg-[#c6c9b8]"
-                onClick={() => {
-                  console.log('🛒 購入ボタンクリック', {
-                    uid: user.uid,
-                    priceId: price.id,
-                  });
-                }}
+                onClick={() => redirectToCheckout(price.id)}
+                disabled={checkoutLoading === price.id} //処理中はボタン無効化
               >
-                {price.unit_amount.toLocaleString()}
-                <span className="text-xs font-normal ml-1">円</span>
+                {checkoutLoading === price.id
+                  ? '🛒 決済準備中...'
+                  : `${price.unit_amount.toLocaleString()} 円`}
               </Button>
             </div>
           ))}

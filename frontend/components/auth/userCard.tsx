@@ -4,9 +4,11 @@ import { Button } from '../ui/Button';
 import AuthForm from '../auth/authform';
 import React from 'react';
 import { Card } from '../ui/Card';
+import { useRouter } from 'next/navigation';
 
 type UserCardProps = {
   user: { email?: string | null; nickname?: string | null };
+
   onUpdate: (
     email: string,
     _password?: string,
@@ -17,6 +19,18 @@ type UserCardProps = {
 
 export default function UserCard({ user, onUpdate, onLogout }: UserCardProps) {
   const [editable, setEditable] = React.useState(false);
+  const router = useRouter();
+
+  // 更新時にフォーム閉じて再描画
+  const handleUpdate = async (
+    email: string,
+    _password?: string,
+    nickname?: string,
+  ) => {
+    await onUpdate(email, _password, nickname);
+    setEditable(false);
+    router.refresh(); // ページ再描画
+  };
 
   return (
     <Card className="bg-[#FBE3CF] mb-6">
@@ -25,7 +39,7 @@ export default function UserCard({ user, onUpdate, onLogout }: UserCardProps) {
         <AuthForm
           submitText="更新"
           requireNickname
-          onSubmit={onUpdate}
+          onSubmit={handleUpdate}
           showPassword={false}
           initialEmail={user.email || ''}
           initialNickname={user.nickname || ''}
@@ -33,7 +47,7 @@ export default function UserCard({ user, onUpdate, onLogout }: UserCardProps) {
       ) : (
         <div className="space-y-2">
           <p>
-            <span className="font-semibold">ニックネーム:</span>
+            <span className="text-lg font-semibold">ニックネーム:</span>{' '}
             {user.nickname}
           </p>
           <p>

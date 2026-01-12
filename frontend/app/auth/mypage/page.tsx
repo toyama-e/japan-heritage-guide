@@ -13,11 +13,11 @@ import { AuthLoginCheck } from '../../../components/auth/authLoginCheck';
 import Diary from '../../../components/auth/mypage-daiarise';
 import UserCard from '../../../components/auth/userCard';
 import SubscriptionSection from '../../../components/stripe/SubscriptionSection';
+import { useLatestSubscription } from '../../../lib/stripe/useSubscription';
 
 type UserData = {
   email?: string | null;
   nickname?: string | null;
-  subscriptionStatus?: 'free' | 'active' | 'canceled';
 };
 
 const fetcherWithToken = async (url: string) => {
@@ -44,11 +44,23 @@ export default function MyPage() {
     return () => unsubscribe();
   }, []);
 
-  // ユーザー情報取得（DB）
+  // ユーザー情報取得（DB/me）
   const { data: user, mutate } = useSWR<UserData>(
     tokenReady ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/me` : null,
     fetcherWithToken,
   );
+
+  // サブスクリプション（Firestore）
+  const { subscription } = useLatestSubscription(auth.currentUser);
+  /// 状態解放
+  const subscriptionStatus: 'active' | 'free' =
+    subscription?.status === 'active' ? 'active' : 'free';
+  /// Stripe用 subscriptionId
+  const subscriptionId = subscription?.id ?? null;
+  ///有効期限
+  const premiumUntil = subscription?.current_period_end
+    ? subscription.current_period_end.toDate()
+    : null;
 
   //プロフィール更新
   //handleUpdate submitハンドラー Firebase と DB に同期
@@ -114,10 +126,12 @@ export default function MyPage() {
         {/* ユーザー情報カード */}
         <UserCard user={user} onUpdate={handleUpdate} onLogout={handleLogout} />
 
-        {/* 有料プラン */}
+        {/* ★ サブスクリプション（MyPage が管理） */}
         <div className="mt-8">
           <SubscriptionSection
-            subscriptionStatus={user.subscriptionStatus}
+            subscriptionStatus={subscriptionStatus}
+            premiumUntil={premiumUntil}
+            subscriptionId={subscriptionId}
             user={auth.currentUser}
           />
         </div>
