@@ -142,17 +142,32 @@ export default function DiaryListPage() {
             </Link>
           </div>
 
-          {/* ✅ 追加：検索欄 */}
-          <div className="mb-5">
+          {/* 検索欄 */}
+          <div className="relative mb-5">
             <label className="sr-only" htmlFor="q">
               検索
             </label>
+
+            {/* 虫眼鏡アイコン */}
+            <Image
+              src="/icons/glass-icon.png"
+              alt="検索"
+              width={18}
+              height={18}
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 opacity-50"
+            />
+
             <input
               id="q"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="タイトル・本文・世界遺産名・ユーザー名で検索"
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-gray-400 focus:border-gray-300 focus:ring-2 focus:ring-gray-200"
+              className="
+      w-full rounded-xl border border-gray-200 bg-white
+      py-3 pl-11 pr-4 text-sm
+      outline-none placeholder:text-gray-400
+      focus:border-gray-300 focus:ring-2 focus:ring-gray-200
+    "
             />
           </div>
 
