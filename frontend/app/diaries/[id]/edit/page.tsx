@@ -256,124 +256,117 @@ export default function DiaryEditPage() {
           </button>
         </div>
       ) : (
-        <div className="mx-auto max-w-lg">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold">日記を編集</h2>
-            <Link
-              href={`/diaries/${diary.id}`}
-              className="text-sm text-gray-600 underline"
-            >
-              詳細へ戻る
-            </Link>
-          </div>
-
-          <form
-            onSubmit={onSubmit}
-            className="rounded-lg bg-white p-6 shadow-sm"
-          >
+        <div>
+          <form onSubmit={onSubmit}>
             {saveError && (
               <p className="mb-4 whitespace-pre-wrap rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-xs text-red-700">
                 {saveError}
               </p>
             )}
 
-            {/* タイトル */}
-            <label className="mb-2 block text-sm font-bold text-gray-700">
-              タイトル
-            </label>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="mb-5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#6B7B4F]"
-              placeholder="タイトルを入力"
-              maxLength={200}
-              required
-            />
+            <div className="mx-auto max-w-lg rounded-lg bg-white p-6 shadow-sm">
+              <h2 className="mb-6 border-b border-[#927D5C] pb-2 text-2xl font-bold">
+                日記を編集
+              </h2>
 
-            {/* 訪問日 */}
-            <label className="mb-2 block text-sm font-bold text-gray-700">
-              訪問日
-            </label>
-            <input
-              type="date"
-              value={visitDay}
-              onChange={(e) => setVisitDay(e.target.value)}
-              className="mb-5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#6B7B4F]"
-            />
+              {/* タイトル */}
+              <label className="mb-2 block text-sm font-bold text-gray-700">
+                タイトル
+              </label>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="mb-5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#6B7B4F]"
+                placeholder="タイトルを入力"
+                maxLength={200}
+                required
+              />
 
-            {/* 画像ファイル */}
-            <label className="mb-2 block text-sm font-bold text-gray-700">
-              画像（差し替え）
-            </label>
+              {/* 訪問日 */}
+              <label className="mb-2 block text-sm font-bold text-gray-700">
+                訪問日
+              </label>
+              <input
+                type="date"
+                value={visitDay}
+                onChange={(e) => setVisitDay(e.target.value)}
+                className="mb-5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#6B7B4F]"
+              />
 
-            <div className="flex items-center gap-3">
-              {/* 見た目用ボタン */}
-              <label
-                htmlFor="image-upload"
-                className="nline-flex cursor-pointer items-center gap-2rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 active:scale-[0.97] mb-4 rounded-lg"
-              >
-                📷 画像を選択
+              {/* 画像ファイル */}
+              <label className="mb-2 block text-sm font-bold text-gray-700">
+                画像（差し替え）
               </label>
 
-              {/* ファイル名表示 */}
-              {selectedFile && (
-                <span className="max-w-[180px] truncate text-xs text-gray-600">
-                  {selectedFile.name}
-                </span>
-              )}
-            </div>
-            <input
-              id="image-upload"
-              type="file"
-              accept="image/*"
-              onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
-              className="hidden"
-            />
+              <div className="flex items-center gap-3">
+                {/* 見た目用ボタン */}
+                <label
+                  htmlFor="image-upload"
+                  className="nline-flex cursor-pointer items-center gap-2rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 active:scale-[0.97] mb-4 rounded-lg"
+                >
+                  📷 画像を選択
+                </label>
 
-            {/* プレビュー */}
-            <div className="mb-6 aspect-video w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
-              {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="新しい画像プレビュー"
-                  className="h-full w-full object-cover"
-                />
-              ) : diary.image_url ? (
-                <img
-                  src={diary.image_url}
-                  alt="現在の画像"
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <Image
-                    src="/images/header-image.png"
-                    alt="日記画像"
-                    width={180}
-                    height={120}
+                {/* ファイル名表示 */}
+                {selectedFile && (
+                  <span className="max-w-[180px] truncate text-xs text-gray-600">
+                    {selectedFile.name}
+                  </span>
+                )}
+              </div>
+              <input
+                id="image-upload"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+                className="hidden"
+              />
+
+              {/* プレビュー */}
+              <div className="mb-6 aspect-video w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    alt="新しい画像プレビュー"
+                    className="h-full w-full object-cover"
                   />
-                </div>
-              )}
-            </div>
+                ) : diary.image_url ? (
+                  <img
+                    src={diary.image_url}
+                    alt="現在の画像"
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Image
+                      src="/images/header-image.png"
+                      alt="日記画像"
+                      width={180}
+                      height={120}
+                    />
+                  </div>
+                )}
+              </div>
 
-            {/* 本文 */}
-            <label className="mb-2 block text-sm font-bold text-gray-700">
-              本文
-            </label>
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              className="mb-6 h-40 w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#6B7B4F]"
-              placeholder="本文を入力"
-              maxLength={10000}
-              required
-            />
+              {/* 本文 */}
+              <label className="mb-2 block text-sm font-bold text-gray-700">
+                本文
+              </label>
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="h-40 w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#6B7B4F]"
+                placeholder="本文を入力"
+                maxLength={10000}
+                required
+              />
+            </div>
 
             <button
               type="submit"
               disabled={saving || uploading}
-              className="w-full rounded-lg bg-[#6B7B4F] py-4 text-lg font-medium tracking-wider text-white shadow-sm transition-all hover:bg-[#5A6943] active:scale-[0.97] disabled:opacity-60"
+              className="mt-4 w-full rounded-lg bg-[#6B7B4F] py-3 text-white disabled:opacity-50 shadow-sm"
             >
               {uploading
                 ? '画像アップロード中...'
@@ -381,6 +374,12 @@ export default function DiaryEditPage() {
                   ? '保存中...'
                   : '保存する'}
             </button>
+            <Link
+              href={`/diaries/${diary.id}`}
+              className="block text-center mt-3 w-full rounded-lg bg-gray-100 py-3 text-gray-700 shadow-sm"
+            >
+              編集をやめる
+            </Link>
           </form>
         </div>
       )}
