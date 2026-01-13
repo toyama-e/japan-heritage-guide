@@ -5,56 +5,79 @@ import AuthForm from '../auth/authform';
 import React from 'react';
 import { Card } from '../ui/Card';
 import { useRouter } from 'next/navigation';
+import { User } from 'firebase/auth';
 
 type UserCardProps = {
-  user: { email?: string | null; nickname?: string | null };
-
+  user: User;
   onUpdate: (
-    email: string,
-    _password?: string,
+    email?: string,
+    password?: string,
     nickname?: string,
   ) => Promise<void>;
   onLogout: () => void;
+  onShowReauth?: () => void;
 };
 
-export default function UserCard({ user, onUpdate, onLogout }: UserCardProps) {
+export default function UserCard({
+  user,
+  onUpdate,
+  onLogout,
+  onShowReauth,
+}: UserCardProps) {
   const [editable, setEditable] = React.useState(false);
   const router = useRouter();
 
-  // 更新時にフォーム閉じて再描画
   const handleUpdate = async (
-    email: string,
-    _password?: string,
+    email?: string,
+    password?: string,
     nickname?: string,
   ) => {
-    await onUpdate(email, _password, nickname);
-    setEditable(false);
-    router.refresh(); // ページ再描画
+    try {
+      await onUpdate(email, password, nickname);
+      setEditable(false);
+      router.refresh();
+    } catch {
+      if (onShowReauth) onShowReauth();
+    }
   };
 
   return (
     <Card className="bg-[#FBE3CF] mb-6">
       <h2 className="text-xl font-semibold mb-4 text-center">ユーザー情報</h2>
+
       {editable ? (
         <AuthForm
           submitText="更新"
           requireNickname
+          showPassword
+          showEmail
           onSubmit={handleUpdate}
-          showPassword={false}
           initialEmail={user.email || ''}
-          initialNickname={user.nickname || ''}
+          initialNickname={user.displayName || ''}
         />
       ) : (
         <div className="space-y-2">
           <p>
-            <span className="text-lg font-semibold">ニックネーム:</span>{' '}
-            {user.nickname}
+            <span className="text-sm font-semibold text-gray-700">
+              ニックネーム :
+            </span>{' '}
+            <span className="text-sm text-gray-600">
+              {user.displayName || '未設定'}
+            </span>
           </p>
+
           <p>
-            <span className="text-lg font-semibold">メール:</span> {user.email}
+            <span className="text-sm font-semibold text-gray-700">
+              メール :{' '}
+            </span>{' '}
+            <span className="text-sm text-gray-600">{user.email}</span>
           </p>
+
           <p>
-            <span className="text-lg font-semibold">パスワード:</span> ※※※※※※※※
+            <span className="text-sm font-semibold text-gray-700">
+              パスワード :
+            </span>{' '}
+            <span className="text-sm text-gray-400">***************</span>
           </p>
         </div>
       )}

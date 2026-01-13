@@ -11,7 +11,6 @@ import {
 } from 'firebase/firestore';
 import { db } from '../auth/firebase';
 
-// --- サブスクリプション型 ---
 export type Subscription = {
   id: string;
   status: 'active' | 'canceled' | 'trialing' | 'incomplete';
@@ -30,29 +29,30 @@ export const useLatestSubscription = (user: User | null) => {
       return;
     }
 
+    // Firestore のサブスクコレクション参照
     const ref = collection(db, `customers/${user.uid}/subscriptions`);
     const q = query(
       ref,
       where('status', 'in', ['active', 'trialing']),
-      //where('status', 'in', [...]) + orderBy はインデックス必須FireBase
+      // インデックス必須: status in + orderBy
       orderBy('current_period_end', 'desc'),
       limit(1),
     );
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('📱FirestoreDB サブスクstart');
-      console.log('照会UID :', user.uid);
+      console.log('📱 FirestoreDB: サブスク取得開始', user.uid);
     }
 
+    // Snapshot: Firestore 更新をリアルタイム反映
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
         const doc = snapshot.docs[0];
         if (!doc) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log(' サブスクリプションはありません');
-          }
           setSubscription(null);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('サブスクリプションなし');
+          }
         } else {
           const data = doc.data();
           const sub: Subscription = {
@@ -60,22 +60,22 @@ export const useLatestSubscription = (user: User | null) => {
             status: data.status,
             current_period_end: data.current_period_end,
           };
-          if (process.env.NODE_ENV === 'development') {
-            console.log('取得サブスク :', sub);
-          }
           setSubscription(sub);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('取得サブスク:', sub);
+          }
         }
         setLoading(false);
       },
       (error) => {
-        console.error('Firestoreエラー', error);
+        console.error('Firestoreサブスクエラー:', error);
         setLoading(false);
       },
     );
 
     return () => {
       if (process.env.NODE_ENV === 'development') {
-        console.log('FirestoreDB サブスクend📱');
+        console.log('📱 FirestoreDB: サブスク取得終了');
       }
       unsubscribe();
     };

@@ -1,9 +1,20 @@
+'use client';
+
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useUserClass } from '../lib/auth/useUserClass';
 
 export default function HomePage() {
+  const { user, isPremium, loading } = useUserClass();
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-sm pt-20 text-center">読み込み中...</div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-sm pt-5">
       <div className="mb-8 text-center">
@@ -52,14 +63,57 @@ export default function HomePage() {
         </Link>
       </section>
 
-      {/* ボタン導線 */}
+      {/* ボタン導線 3パターン */}
       <section className="mt-8 space-y-3">
-        <Link href="/auth/login">
-          <Button className="bg-[#E6DAD0] mb-4">ログイン</Button>
-        </Link>
-        <Link href="/auth/register">
-          <Button className="bg-white">新規登録</Button>
-        </Link>
+        {/* 1. 未ログイン時 */}
+        {!user && (
+          <>
+            <Link href="/auth/login">
+              <Button className="bg-[#E6DAD0] mb-4">ログイン</Button>
+            </Link>
+            <Link href="/auth/register">
+              <Button className="bg-white">新規登録</Button>
+            </Link>
+          </>
+        )}
+
+        {/* 2. ログイン済み*/}
+        {user && !isPremium && (
+          <>
+            <Link href="/auth/mypage">
+              <Button className="bg-[#C5A059] hover:bg-[#B48F48] text-white mb-4 w-full font-bold shadow-md border-none">
+                いさんぽPremiumに登録
+              </Button>
+            </Link>
+            <div className="relative">
+              <Button
+                className="bg-gray-200 w-full cursor-not-allowed text-gray-400 border-none"
+                disabled
+              >
+                AI旅行プラン・解説モード選択
+              </Button>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50">
+                🔒
+              </span>
+            </div>
+          </>
+        )}
+
+        {/* 3. いさんぽプレミアム会員 */}
+        {user && isPremium && (
+          <>
+            <Link href="/ai-diagnosis">
+              <Button className="bg-[#1E293B] hover:bg-[#0F172A] mb-4 w-full font-bold shadow-lg text-[#E2E8F0] border border-[#334155]">
+                旅行プランも予約もAIにお任せ
+              </Button>
+            </Link>
+            <Link href="/ai-mode-select">
+              <Button className="bg-[#334155] hover:bg-[#1E293B] w-full font-bold shadow-lg text-white border border-[#475569]">
+                解説モード（やさしい・まなび・くわしい）
+              </Button>
+            </Link>
+          </>
+        )}
       </section>
     </div>
   );
