@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { auth } from '../../lib/auth/firebase';
 import { getIdToken } from '../../lib/auth/getidtoken';
 import { TitleText } from '../ui/TitleText';
+import Image from 'next/image';
 
 type UserRead = {
   email?: string | null;
@@ -77,7 +78,13 @@ export default function HeaderUserInfo() {
       <div className="text-right leading-tight">
         <div className="text-sm font-semibold text-gray-900">ゲスト</div>
         <div className="text-xs text-gray-600">
-          称号：
+          <Image
+            className="mx-auto mb-3 mt-1"
+            src="/icons/badge-icon.png"
+            alt="一覧から探す"
+            width={20}
+            height={20}
+          />
           <TitleText count={0} />
         </div>
       </div>
@@ -88,10 +95,18 @@ export default function HeaderUserInfo() {
   if (loading || !nickname) return null;
 
   return (
-    <div className="text-right leading-tight">
-      <div className="text-sm font-semibold text-gray-900">{nickname}</div>
-      <div className="text-xs text-gray-600">
-        称号：
+    <div className="flex flex-col items-end text-right leading-tight">
+      <div className="mb-2 w-fit rounded-full px-6 py-1 transition-colors bg-[#FBE3CF] font-bold">
+        {nickname}
+      </div>
+      <div className="flex items-center text-sm text-gray-600">
+        <Image
+          className="mr-2"
+          src="/icons/badge-icon.png"
+          alt="一覧から探す"
+          width={20}
+          height={20}
+        />
         <TitleText count={count} />
       </div>
     </div>

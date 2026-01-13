@@ -6,7 +6,7 @@ import HeaderUserInfo from './HeaderUserInfo';
 
 export default function Header() {
   return (
-    <div className="header w-105 mx-auto pt-5 pr-5 pb-0 pl-5 bg-[#FAFAF7]">
+    <div className="z-2 header fixed w-full py-4 pr-6 pl-6 bg-white shadow-[0px_5px_10px_-2px_#c3c1c1]">
       <div className="flex items-center justify-between">
         <h1>
           <Link href="/">
@@ -19,7 +19,6 @@ export default function Header() {
             />
           </Link>
         </h1>
-
         <HeaderUserInfo />
       </div>
     </div>

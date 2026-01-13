@@ -5,13 +5,14 @@ import { getIdToken } from '../../lib/auth/getidtoken';
 
 interface AuthFormProps {
   onSubmit: (
-    email: string,
+    email?: string,
     password?: string,
     nickname?: string,
   ) => Promise<unknown>;
   submitText: string;
   requireNickname?: boolean;
   showPassword?: boolean;
+  showEmail?: boolean;
   initialEmail?: string;
   initialNickname?: string;
 }
@@ -20,7 +21,8 @@ export default function AuthForm({
   onSubmit,
   submitText,
   requireNickname = false,
-  showPassword = true, // デフォルトは true（新規登録・ログイン用）
+  showPassword = true,
+  showEmail = true, // デフォルトは true（新規登録・ログイン用）
   initialEmail = '',
   initialNickname = '',
 }: AuthFormProps) {
@@ -86,18 +88,19 @@ export default function AuthForm({
       )}
 
       {/* メール */}
-      <input
-        type="email"
-        placeholder="メールアドレス"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="
+      {showEmail && (
+        <input
+          type="email"
+          placeholder="メールアドレス"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="
           w-full rounded-lg border border-gray-300
           px-4 py-3 text-sm
           focus:border-black focus:outline-none
         "
-      />
-
+        />
+      )}
       {/* パスワード */}
       {showPassword && (
         <input
@@ -118,9 +121,9 @@ export default function AuthForm({
         type="submit"
         disabled={
           loading ||
-          !email ||
-          (showPassword && !password) ||
-          (requireNickname && !nickname)
+          ((!showEmail || !email) &&
+            (!showPassword || !password) &&
+            (!requireNickname || !nickname))
         }
         className="
           w-full rounded-lg bg-black py-3

@@ -149,7 +149,7 @@ const ProductList = ({ user }: Props) => {
             <div key={price.id} className="flex items-center justify-between">
               {/* 購入ボタン */}
               <Button
-                className="bg-[#D3D6C6] hover:bg-[#c6c9b8]"
+                className="bg-[#C5A059] hover:bg-[#B48F48] text-white mb-4 w-auto font-bold shadow-md py-1.5 text-sm rounded"
                 onClick={() => redirectToCheckout(price.id)}
                 disabled={checkoutLoading === price.id} //処理中はボタン無効化
               >
