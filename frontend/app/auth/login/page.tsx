@@ -14,7 +14,7 @@ export default function LoginPage() {
 
   return (
     <div>
-      <h1>ログイン</h1>
+      <h2 className="text-2xl font-bold">ログイン</h2>
       <AuthForm onSubmit={handleSignIn} submitText="ログイン" />
       <br />
       <button onClick={() => router.push('/auth/register')}>

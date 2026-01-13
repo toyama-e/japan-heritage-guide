@@ -80,11 +80,11 @@ export default function HeritagesPage() {
   if (isLoading || !list) return <div className="p-4">読み込み中...</div>;
 
   return (
-    <div className="mx-auto w-full max-w-[420px] px-4 pb-24 pt-5">
+    <div className="mx-auto w-full pb-24 pt-5">
       <header className="mb-4">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900">
-          世界遺産
-        </h1>
+        <h2 className="mb-5 text-2xl font-semibold tracking-tight text-slate-900">
+          日本の世界遺産
+        </h2>
         <p className="mt-1 text-sm text-slate-600">カードをタップして詳細へ</p>
 
         <div className="mt-3 relative">

@@ -19,7 +19,7 @@ export const BadgeCard = ({ badge }: Props) => {
   return (
     <Card
       className={[
-        'overflow-hidden p-0 rounded-2xl border',
+        'overflow-hidden px-3 py-3 rounded-2xl border',
         'bg-gradient-to-b from-white/80 to-[#fbf7ef]',
         badge.unlocked
           ? 'border-[#e6dcc7] shadow-[0_10px_24px_rgba(24,20,12,0.10)]'
@@ -27,7 +27,7 @@ export const BadgeCard = ({ badge }: Props) => {
       ].join(' ')}
     >
       {/* No. 札 */}
-      <div className="flex items-center justify-between px-3 pt-3">
+      <div className="flex items-center justify-between mt-2">
         <Badge
           className={[
             'rounded-full border px-2.5 py-1 text-[11px] tracking-wide',
@@ -41,7 +41,7 @@ export const BadgeCard = ({ badge }: Props) => {
       </div>
 
       {/* 画像 */}
-      <div className="relative mt-2 h-28 w-full">
+      <div className="relative mt-4 h-28 w-full">
         <img
           src={badge.imageUrl}
           alt={badge.name}
@@ -71,7 +71,7 @@ export const BadgeCard = ({ badge }: Props) => {
       </div>
 
       {/* 名前 */}
-      <div className="px-3 pb-3 pt-3">
+      <div className="mt-2 pb-3 pt-3">
         <p
           className={[
             'text-sm font-medium leading-snug',
