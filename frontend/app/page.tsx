@@ -102,7 +102,7 @@ export default function HomePage() {
         {/* 3. いさんぽプレミアム会員 */}
         {user && isPremium && (
           <>
-            <Link href="/ai-diagnosis">
+            <Link href="/ai/recommend">
               <Button className="bg-[#1E293B] hover:bg-[#0F172A] mb-4 w-full font-bold shadow-lg text-[#E2E8F0] border border-[#334155]">
                 旅行プランも予約もAIにお任せ
               </Button>
