@@ -14,7 +14,14 @@ export default function LoginPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold">ログイン</h2>
+      <h2 className="text-2xl font-bold mb-4">ログイン</h2>
+      <p className="text-sm mb-7">
+        ログインをすると日記とバッジ獲得機能を利用できます。
+        <br />
+        ユーザーは無料で作成できます。
+        <br />
+        初めての方は新規登録から行ってください。
+      </p>
       <AuthForm onSubmit={handleSignIn} submitText="ログイン" />
       <br />
       <button onClick={() => router.push('/auth/register')}>
