@@ -227,21 +227,6 @@ export default function DiaryDetailPage() {
               <h2 className="mb-2 flex-1 border-b border-yellow-600 pb-2 text-xl font-bold leading-relaxed">
                 {diary.title}
               </h2>
-
-              <button
-                onClick={onClickLike}
-                disabled={liking}
-                className="absolute right-4 inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm"
-              >
-                <Image
-                  src="/icons/good-before_icon.png"
-                  alt="いいね"
-                  width={25}
-                  height={25}
-                  className={liking ? 'animate-pulse' : ''}
-                />
-                <span className="tabular-nums">{diary.like_count}</span>
-              </button>
             </div>
 
             <div className="mb-6 flex items-center justify-end gap-3 text-[12px] text-gray-500">
@@ -255,6 +240,21 @@ export default function DiaryDetailPage() {
                   : '日付未設定'}
               </span>
               <span>{diary.user_nickname ?? '名無し'}</span>
+
+              <button
+                onClick={onClickLike}
+                disabled={liking}
+                className="right-4 inline-flex items-center gap-1 rounded-full text-sm"
+              >
+                <Image
+                  src="/icons/good-before_icon.png"
+                  alt="いいね"
+                  width={25}
+                  height={25}
+                  className={liking ? 'animate-pulse' : ''}
+                />
+                <span className="tabular-nums">{diary.like_count}</span>
+              </button>
             </div>
 
             <div className="mb-6 aspect-video w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100">

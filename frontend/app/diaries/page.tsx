@@ -207,7 +207,7 @@ export default function DiaryListPage() {
                       </div>
 
                       <div className="flex flex-1 flex-col">
-                        <p className="mb-2 w-fit rounded-full bg-[#D3D6C6] px-3 py-0.5 text-[10px]">
+                        <p className="mb-2 w-fit max-w-45 rounded-full bg-[#D3D6C6] px-3 py-0.5 text-[10px]">
                           {diary.world_heritage_name ?? ''}
                         </p>
                         <div className="mb-1 flex items-center gap-2 text-[10px] text-gray-600">
