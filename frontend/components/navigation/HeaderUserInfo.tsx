@@ -99,7 +99,7 @@ export default function HeaderUserInfo() {
 
   return (
     <div className="flex flex-col items-end text-right leading-tight">
-      <div className="text-sm mb-1 w-fit rounded-full px-6 py-1 transition-colors bg-[#FBE3CF] font-bold">
+      <div className="text-sm mb-2 w-fit rounded-full px-3 py-1 transition-colors bg-[#FBE3CF] font-bold">
         {nickname}
         <span className="text-xs"> さん</span>
       </div>
