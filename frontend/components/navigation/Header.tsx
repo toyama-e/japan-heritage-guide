@@ -38,7 +38,7 @@ export default function Header() {
         visible ? 'translate-y-0' : '-translate-y-full',
       ].join(' ')}
     >
-      <div className="flex items-center justify-between px-6 py-2">
+      <div className="flex items-center justify-between px-6 py-4">
         <h1>
           <Link href="/">
             <Image

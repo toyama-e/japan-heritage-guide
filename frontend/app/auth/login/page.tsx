@@ -16,7 +16,7 @@ export default function LoginPage() {
     <div>
       <h2 className="text-2xl font-bold mb-4">ログイン</h2>
       <p className="text-sm mb-7">
-        ログインをすると日記とバッジ獲得機能を利用できます。
+        ログインをすると訪問登録と日記機能を利用できます。
         <br />
         ユーザーは無料で作成できます。
         <br />
