@@ -1,3 +1,8 @@
+# NOTE:
+# これは「旧 dev 仮認証（X-User-Id）」用の手動テストです。
+# 現在の Visits API は Firebase 認証（Authorization: Bearer <ID_TOKEN>）が本線のため、
+# 本スクリプトはそのままだと 422/401 になります。
+
 #!/bin/bash
 set -e
 
