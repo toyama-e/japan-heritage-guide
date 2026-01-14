@@ -108,9 +108,7 @@ export default function MyPage() {
   return (
     <AuthLoginCheck>
       <div className="max-w-md mx-auto p-4 space-y-8">
-        <h1 className="text-3xl font-bold mb-6 text-center tracking-wide">
-          マイページ
-        </h1>
+        <h2 className="text-3xl font-bold mb-10 tracking-wide">マイページ</h2>
 
         {/* ユーザー情報カード */}
         <section>

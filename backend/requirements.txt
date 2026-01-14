@@ -18,3 +18,5 @@ firebase-admin==7.1.0
 
 pytest==8.3.4
 # httpx は firebase-admin が httpx==0.28.1 を入れるので書かない
+
+openai==2.14.0

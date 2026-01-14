@@ -70,7 +70,7 @@ export default function AuthForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="mx-auto mt-10 w-full max-w-sm space-y-4"
+      className="mx-auto mt-5 w-full max-w-sm space-y-4"
     >
       {/* ニックネーム */}
       {requireNickname && (
@@ -126,7 +126,7 @@ export default function AuthForm({
             (!requireNickname || !nickname))
         }
         className="
-          w-full rounded-lg bg-black py-3
+          w-full rounded-lg bg-[#6B7B4F] py-3
           text-sm font-medium text-white
           transition
           hover:bg-gray-800

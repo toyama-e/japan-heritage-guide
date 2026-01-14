@@ -8,7 +8,7 @@ type BadgeProps = {
 };
 
 const BASE_BADGE_CLASS_NAME =
-  'inline-flex items-center rounded-full bg-gray-200 px-2 py-1 text-xs text-gray-800';
+  'inline-flex items-center rounded-full px-2 py-1 text-xs text-gray-800';
 
 export const Badge = ({ children, className }: BadgeProps) => {
   return (
