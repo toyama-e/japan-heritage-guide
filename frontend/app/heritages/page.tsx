@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import useSWR from 'swr';
 import { useMemo, useState } from 'react';
+import Image from 'next/image';
 
 type HeritageData = {
   id: number;
@@ -24,12 +25,11 @@ const fetcher = async (url: string) => {
 };
 
 function TypeBadge({ type }: { type: string }) {
-  const cls =
-    type.includes('自然')
-      ? 'bg-emerald-50 text-emerald-800 ring-emerald-200'
-      : type.includes('文化')
-        ? 'bg-amber-50 text-amber-900 ring-amber-200'
-        : 'bg-slate-50 text-slate-800 ring-slate-200';
+  const cls = type.includes('自然')
+    ? 'bg-emerald-50 text-emerald-800 ring-emerald-200'
+    : type.includes('文化')
+      ? 'bg-amber-50 text-amber-900 ring-amber-200'
+      : 'bg-slate-50 text-slate-800 ring-slate-200';
 
   return (
     <span
@@ -50,13 +50,13 @@ export default function HeritagesPage() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
   const swrKey = apiUrl ? `${apiUrl}/api/v1/heritages` : null;
 
-  const { data: list, error, isLoading } = useSWR<HeritageData[]>(
-    swrKey,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-    },
-  );
+  const {
+    data: list,
+    error,
+    isLoading,
+  } = useSWR<HeritageData[]>(swrKey, fetcher, {
+    revalidateOnFocus: false,
+  });
 
   const items = useMemo(() => {
     if (!list) return [];
@@ -80,25 +80,38 @@ export default function HeritagesPage() {
   if (isLoading || !list) return <div className="p-4">読み込み中...</div>;
 
   return (
-    <div className="mx-auto w-full max-w-[420px] px-4 pb-24 pt-5">
+    <div className="mx-auto w-full pb-24 pt-5">
       <header className="mb-4">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900">
-          世界遺産
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">
-          カードをタップして詳細へ
-        </p>
+        <h2 className="mb-5 text-2xl font-semibold tracking-tight text-slate-900">
+          日本の世界遺産
+        </h2>
+        <p className="mt-1 text-sm text-slate-600">カードをタップして詳細へ</p>
 
-        <div className="mt-3">
+        <div className="mt-3 relative">
           <label className="sr-only" htmlFor="q">
             検索
           </label>
+
+          {/* 虫眼鏡アイコン */}
+          <Image
+            src="/icons/glass-icon.png"
+            alt="検索"
+            width={18}
+            height={18}
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 opacity-50"
+          />
+
           <input
             id="q"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="名称・所在地・区分で検索"
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-slate-400 focus:border-slate-300 focus:ring-2 focus:ring-slate-200"
+            className="
+            w-full rounded-xl border border-gray-200 bg-white
+            py-3 pl-11 pr-4 text-sm
+            outline-none placeholder:text-gray-400
+          focus:border-gray-300 focus:ring-2 focus:ring-gray-200
+    "
           />
         </div>
       </header>

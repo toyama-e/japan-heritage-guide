@@ -252,9 +252,9 @@ export default function NewRecordPage() {
 
   return (
     <AuthLoginCheck>
-      <div className="mx-auto max-w-sm px-6 pt-10 text-[15px] text-gray-900">
+      <div className="mx-auto max-w-sm text-gray-900">
         <header className="mb-6 text-center">
-          <h1 className="text-xl font-bold">訪問登録</h1>
+          <h2 className="text-2xl font-bold mb-5">訪問登録</h2>
           <p className="mt-2 text-sm text-gray-500">
             訪問した世界遺産と日付を登録します
           </p>
@@ -356,7 +356,7 @@ export default function NewRecordPage() {
           <div className="mt-6">
             <Button
               disabled={!canSubmit || submitting}
-              className="w-full bg-black text-white hover:bg-black/90 disabled:bg-black/40"
+              className="w-full bg-[#6B7B4F] text-white hover:bg-black/90 disabled:bg-black/40"
               onClick={async () => {
                 await saveVisit();
               }}

@@ -4,7 +4,7 @@ import AuthForm from '../../../components/auth/authform';
 import { signUp } from '../../../lib/auth/signup';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { getIdToken } from '../../../lib/auth/getidtoken';
+// import { getIdToken } from '../../../lib/auth/getidtoken';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -62,7 +62,7 @@ export default function SignupPage() {
         </>
       ) : (
         <>
-          <h1>ユーザー登録</h1>
+          <h2 className="text-2xl font-bold">ユーザー登録</h2>
           <AuthForm
             onSubmit={handleSignup}
             submitText={loading ? '登録中…' : '登録'}

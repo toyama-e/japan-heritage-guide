@@ -163,10 +163,10 @@ export default function DiaryListPage() {
               onChange={(e) => setQ(e.target.value)}
               placeholder="タイトル・本文・世界遺産名・ユーザー名で検索"
               className="
-      w-full rounded-xl border border-gray-200 bg-white
-      py-3 pl-11 pr-4 text-sm
-      outline-none placeholder:text-gray-400
-      focus:border-gray-300 focus:ring-2 focus:ring-gray-200
+              w-full rounded-xl border border-gray-200 bg-white
+              py-3 pl-11 pr-4 text-sm
+              outline-none placeholder:text-gray-400
+            focus:border-gray-300 focus:ring-2 focus:ring-gray-200
     "
             />
           </div>
