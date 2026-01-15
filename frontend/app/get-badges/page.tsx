@@ -146,6 +146,19 @@ export default function GetBadgesPage() {
               </p>
             )}
           </div>
+
+          {/* 称号infoリンク */}
+          <div className="flex justify-end mt-1">
+            <Link
+              href="/rank_info"
+              className="text-[11px] text-[#c49a4f] hover:underline flex items-center gap-1 opacity-80 hover:opacity-100 transition-all"
+            >
+              <span className="inline-flex items-center justify-center w-3 h-3 border border-[#c49a4f] rounded-full text-[9px] font-bold">
+                i
+              </span>
+              称号の条件を確認する
+            </Link>
+          </div>
         </div>
 
         {/* 使い方ガイド：折り返し防止 */}
