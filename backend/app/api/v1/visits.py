@@ -23,11 +23,6 @@ def create_visit(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    print(
-        "[visits/create] user_id=%s email=%s",
-        current_user.id,
-        current_user.email,
-    )
 
     visit = Visit(
         user_id=current_user.id,
