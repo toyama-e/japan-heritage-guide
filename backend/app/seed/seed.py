@@ -2,6 +2,7 @@
 from app.core.database import SessionLocal
 from app.models.heritage import WorldHeritage
 
+
 def seed():
     db = SessionLocal()
 
@@ -29,6 +30,7 @@ def seed():
     db.add_all(heritages)
     db.commit()
     db.close()
+
 
 if __name__ == "__main__":
     seed()

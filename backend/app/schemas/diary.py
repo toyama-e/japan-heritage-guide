@@ -1,6 +1,8 @@
 from datetime import date, datetime
-from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 class DiaryBase(BaseModel):
     world_heritage_id: int
@@ -9,6 +11,7 @@ class DiaryBase(BaseModel):
     title: str
     text: str
     image_url: str | None = None
+
 
 class DiaryListItem(BaseModel):
     id: int
@@ -20,8 +23,10 @@ class DiaryListItem(BaseModel):
     text: str
     image_url: str | None
     user_nickname: str | None
+
     class Config:
         from_attributes = True
+
 
 class DiaryListItem2(BaseModel):
     id: int
@@ -43,6 +48,7 @@ class DiaryListItem2(BaseModel):
     deleted_at: datetime | None
 
     model_config = ConfigDict(from_attributes=True)
+
 
 # 詳細用（前回追加したもの）
 class DiaryDetail(BaseModel):
@@ -68,15 +74,19 @@ class DiaryDetail(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class DiaryCreate(DiaryBase):
     pass
+
 
 class DiaryDeleteResponse(BaseModel):
     message: str = "deleted"
 
+
 class DiaryLikeOut(BaseModel):
     diary_id: int
     like_count: int
+
 
 class DiaryUpdate(BaseModel):
     # 送られてきた項目だけ更新したいので Optional
