@@ -1,13 +1,13 @@
 # backend/app/seed/seed_diaries_simple.py
 
 from datetime import date
+
 from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal
+from app.models.diary import Diary
 from app.models.heritage import WorldHeritage
 from app.models.user import User
-from app.models.diary import Diary
-
 
 # ここだけ必要なら変更
 DEFAULT_USER_ID = 1

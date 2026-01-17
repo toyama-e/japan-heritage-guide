@@ -1,18 +1,20 @@
 # backend/api/v1/visits.py
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.firebase_dependency import get_current_user  # ← ★これ！
 from app.models.user import User
-from app.schemas.visits import VisitCreateRequest, VisitOut, VisitsMeResponse
 from app.models.visit import Visit
+from app.schemas.visits import VisitCreateRequest, VisitOut, VisitsMeResponse
 
-import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/visits", tags=["visits"])
+
 
 # 訪問記録 新規作成
 @router.post("", response_model=VisitOut, status_code=201)

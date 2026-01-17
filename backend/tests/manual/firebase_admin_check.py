@@ -1,16 +1,17 @@
 # 実行コマンド
 # docker compose exec backend python tests/manual/firebase_admin_check.py
 
-import sys
 from pathlib import Path
+import sys
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 sys.path.append(str(Path(__file__).resolve().parent.parent / "app"))
 
-from app.core.firebase_admin import init_firebase_admin
 from firebase_admin import auth
+
+from app.core.firebase_admin import init_firebase_admin
 
 print("=== Firebase Admin テスト開始 ===")
 

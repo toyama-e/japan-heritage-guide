@@ -1,11 +1,13 @@
 from datetime import date
+
 from fastapi.testclient import TestClient
 
-from app.main import app
 from app.core.firebase_dependency import get_current_user
+from app.main import app
 from app.schemas.visits import VisitsMeResponse
 
 client = TestClient(app)
+
 
 # テスト用ユーザー
 class DummyUser:
@@ -19,8 +21,10 @@ class DummyUser:
         self.firebase_uid = firebase_uid
         self.email = email
 
+
 def override_get_current_user():
     return DummyUser()
+
 
 # overrideを有効化
 app.dependency_overrides[get_current_user] = override_get_current_user
@@ -36,6 +40,7 @@ def test_get_my_visits_returns_200_and_shape():
     assert "count" in data
     assert isinstance(data["visited_heritage_ids"], list)
     assert isinstance(data["count"], int)
+
 
 # 訪問登録（POST /visits）テスト
 def test_create_visit_returns_201_or_409():
@@ -70,6 +75,9 @@ def test_create_visit_duplicate_returns_409():
     # 2回目は基本 409 を期待
     res2 = client.post("/api/v1/visits", json=payload)
     print("🟢status_code:", res2.status_code)
-    assert res2.status_code in (409, 201)  # ←DBが毎回初期化されない環境なら409になりやすい
+    assert res2.status_code in (
+        409,
+        201,
+    )  # ←DBが毎回初期化されない環境なら409になりやすい
     if res2.status_code == 409:
         assert res2.json()["detail"] == "すでに訪問登録されています"

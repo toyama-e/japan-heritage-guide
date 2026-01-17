@@ -1,14 +1,16 @@
-from app.core.database import Base
 from sqlalchemy import (
-    String,
     Column,
-    Integer,
     Date,
     DateTime,
     ForeignKey,
+    Integer,
+    String,
     Text,
     func,
 )
+
+from app.core.database import Base
+
 
 class Diary(Base):
     __tablename__ = "diaries"

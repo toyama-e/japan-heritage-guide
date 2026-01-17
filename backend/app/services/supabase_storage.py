@@ -1,5 +1,6 @@
-import os
 import mimetypes
+import os
+
 import requests
 
 SUPABASE_URL = os.environ["SUPABASE_URL"]
@@ -20,7 +21,9 @@ def _safe_ext(filename: str) -> str:
     return ext if ext in ALLOWED_EXT else ".jpg"
 
 
-def upload_diary_cover_image(*, user_id: int, diary_id: int, filename: str, content: bytes) -> str:
+def upload_diary_cover_image(
+    *, user_id: int, diary_id: int, filename: str, content: bytes
+) -> str:
     """
     diaries/{user_id}/{diary_id}/cover.{ext} に上書きアップロード（差し替え）
     """

@@ -1,11 +1,12 @@
 # alembic/env.py
 from logging.config import fileConfig
+
 from alembic import context
-from app.core.database import engine, Base
-from app.models.heritage import WorldHeritage
-from app.models.visit import Visit
-from app.models.user import User
+from app.core.database import Base, engine
 from app.models.diary import Diary
+from app.models.heritage import WorldHeritage
+from app.models.user import User
+from app.models.visit import Visit
 
 # Alembic Config
 config = context.config

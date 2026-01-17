@@ -1,7 +1,9 @@
 # check_seed.py
-from sqlalchemy.orm import Session
-from app.core.database import SessionLocal
 from models.heritage import WorldHeritage
+from sqlalchemy.orm import Session
+
+from app.core.database import SessionLocal
+
 
 def main():
     db: Session = SessionLocal()  # DBセッション作成
@@ -17,6 +19,7 @@ def main():
             print(f"ID: {h.id}, Name: {h.name}, Address: {h.address}, Year: {h.year}")
     finally:
         db.close()  # セッションを必ずクローズ
+
 
 if __name__ == "__main__":
     main()
