@@ -38,9 +38,9 @@ export default function SignupPage() {
       // 4. 登録完了表示
       setCompleted(true);
 
-      // 5. 少し待って TOP に遷移
+      //router.push('/') の代わりに window.location.href を使用
       setTimeout(() => {
-        router.push('/');
+        window.location.href = '/';
       }, 1500);
     } catch (error: unknown) {
       if (error instanceof Error) {
