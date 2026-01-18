@@ -5,6 +5,7 @@ import { auth } from '../../lib/auth/firebase';
 import { getIdToken } from '../../lib/auth/getidtoken';
 import { TitleText } from '../ui/TitleText';
 import Image from 'next/image';
+import { useUserClass } from '../../lib/auth/useUserClass';
 
 type UserRead = {
   email?: string | null;
@@ -16,6 +17,7 @@ type VisitsMeResponse = {
 };
 
 export default function HeaderUserInfo() {
+  const { nickname: syncNickname } = useUserClass();
   const [nickname, setNickname] = useState<string | null>(null);
   const [count, setCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -36,6 +38,8 @@ export default function HeaderUserInfo() {
       setLoading(true);
 
       try {
+        // サインアップ直後のバックエンド処理完了を待つためのバッファ（0.5秒）
+        await new Promise((resolve) => setTimeout(resolve, 500));
         // トークン取得（この時点では user がいるので取りやすい）
         const token = await getIdToken();
         if (!token) {
@@ -72,8 +76,10 @@ export default function HeaderUserInfo() {
     return () => unsubscribe();
   }, []);
 
+  const displayNickname = syncNickname || nickname;
+
   // 未ログインでも「称号：未獲得」を出したいならこう
-  if (!nickname && !loading) {
+  if (!displayNickname && !loading) {
     return (
       <div className="flex flex-col items-end text-right leading-tight">
         <div className="text-sm mb-2 w-fit transition-colors font-bold">
@@ -95,12 +101,12 @@ export default function HeaderUserInfo() {
   }
 
   // 読み込み中は何も出さない（好みで「読み込み中…」もOK）
-  if (loading || !nickname) return null;
+  if (loading || !displayNickname) return null;
 
   return (
     <div className="flex flex-col items-end text-right leading-tight">
       <div className="text-sm mb-2 w-fit rounded-full px-3 py-1 transition-colors bg-[#FBE3CF] font-bold">
-        {nickname}
+        {displayNickname}
         <span className="text-xs"> さん</span>
       </div>
       <div className="flex items-center text-sm text-gray-600">

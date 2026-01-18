@@ -13,6 +13,7 @@ import UserCard from '../../../components/auth/userCard';
 import ReauthUpdateModal from '../../../components/auth/authUpdate';
 import Diary from '../../../components/auth/mypage-daiarise';
 import SubscriptionSection from '../../../components/stripe/SubscriptionSection';
+import UserRankDisplay from '../../../components/navigation/UserRank';
 
 // フック
 import { useUserClass } from '../../../lib/auth/useUserClass';
@@ -20,7 +21,7 @@ import { useLatestSubscription } from '../../../lib/stripe/useSubscription';
 
 export default function MyPage() {
   // 1. ユーザー情報とサブスクリプション情報の取得
-  const { user, loading, mutateUser } = useUserClass();
+  const { user, loading, mutateUser, visitCount } = useUserClass();
   const { subscription, loading: loadingSub } = useLatestSubscription(
     auth.currentUser,
   );
@@ -130,6 +131,21 @@ export default function MyPage() {
             subscriptionId={subscriptionId}
             user={auth.currentUser}
           />
+        </section>
+
+        {/* --- ★ ランクと訪問回数の表示を追加 --- */}
+        <section className="text-center p-6 bg-[#D3D6C6]  rounded-2xl shadow-sm border border-blue-100">
+          <p className="text-sm text-blue-600 font-bold mb-1">現在のランク</p>
+          <div className="mb-2">
+            <UserRankDisplay />
+          </div>
+          <p className="text-gray-600 text-sm">
+            累計バッジ獲得数:{' '}
+            <span className="font-bold text-lg text-gray-800">
+              {visitCount}
+            </span>{' '}
+            回
+          </p>
         </section>
 
         {/* 日記リスト */}
