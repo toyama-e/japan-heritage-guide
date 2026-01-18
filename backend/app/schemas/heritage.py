@@ -1,5 +1,7 @@
-from pydantic import BaseModel, ConfigDict
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict
+
 
 class HeritageOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)

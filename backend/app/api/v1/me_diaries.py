@@ -1,14 +1,17 @@
+from typing import List
+
 from fastapi import APIRouter, Depends
+from sqlalchemy import literal
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
+from app.core.firebase_dependency import get_current_user
 from app.models.diary import Diary
 from app.models.heritage import WorldHeritage
-from app.core.firebase_dependency import get_current_user
 from app.schemas.diary import DiaryListItem
-from typing import List
-from sqlalchemy import literal
 
 router = APIRouter()
+
 
 # ---------------------------
 # API: カレントユーザーの訪問日記を取得
@@ -29,7 +32,9 @@ def read_my_diaries(
             Diary.text,
             Diary.image_url,
             WorldHeritage.name.label("world_heritage_name"),
-            literal(current_user.nickname).label("user_nickname")   #スキーマと合わせる為
+            literal(current_user.nickname).label(
+                "user_nickname"
+            ),  # スキーマと合わせる為
         )
         .join(WorldHeritage, Diary.world_heritage_id == WorldHeritage.id)
         .filter(Diary.user_id == current_user.id)

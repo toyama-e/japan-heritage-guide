@@ -1,7 +1,9 @@
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 client = TestClient(app)
+
 
 # 世界遺産一覧取得（GET /heritages）テスト
 def test_list_heritages_returns_200_and_schema():
@@ -22,11 +24,13 @@ def test_list_heritages_returns_200_and_schema():
     assert isinstance(first["name"], str)
     assert isinstance(first["type"], str)
 
+
 # 世界遺産詳細取得（GET /heritages/{heritage_id}）テスト：存在しない世界遺産IDを指定した場合 404 エラーを返す
 def test_get_heritage_returns_404_for_nonexistent_id():
     res = client.get("/api/v1/heritages/999999")
     assert res.status_code == 404
     assert res.json()["detail"] == "Heritage not found"
+
 
 # 世界遺産詳細取得（GET /heritages/{heritage_id}）テスト：存在する世界遺産IDを指定した場合 200 と正しいスキーマを返す
 def test_get_heritage_returns_200_for_existing_id_and_schema():
