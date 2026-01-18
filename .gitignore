@@ -1,0 +1,41 @@
+# 共通
+.DS_Store
+Thumbs.db
+.idea/
+.env
+.env.*
+!.env.example
+.env.local
+
+# Frontend / Node
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Backend / Python
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.sqlite3
+*.db
+firebase-service-account.json
+
+# Docker / DB
+*.log
+mysql_data/
+db_data/
+docker-compose.override.yml
