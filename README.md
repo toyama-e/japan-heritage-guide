@@ -6,6 +6,10 @@
 
 日本の世界遺産を「知る・行く・記録する」を一つの体験としてつなぐ Web アプリ。
 
+## デモ動画
+
+https://github.com/user-attachments/assets/ce86414d-b11d-4209-a8ce-2c1bdd5953c4
+
 ## 技術スタック
 
 - Frontend: Next.js / TypeScript / Tailwind CSS
